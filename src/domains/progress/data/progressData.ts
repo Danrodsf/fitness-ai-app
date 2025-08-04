@@ -57,7 +57,7 @@ export const generatePersonalizedMilestones = (userProfile: {
     
     // Agregar milestones mensuales si es ganancia muscular
     if (mainGoal === 'gain_muscle' && smartGoal.monthlyTargets.length > 1) {
-      smartGoal.monthlyTargets.slice(0, 3).forEach((monthlyTarget, index) => {
+      smartGoal.monthlyTargets.slice(0, 3).forEach((monthlyTarget) => {
         const monthlyDate = new Date(today)
         monthlyDate.setMonth(monthlyDate.getMonth() + monthlyTarget.month)
         

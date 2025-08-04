@@ -1,5 +1,5 @@
 import { supabase } from '@/domains/auth/services/authService'
-import { WeightEntry, Measurement, ProgressPhoto, Milestone, PerformanceMetric, WeeklyProgress } from '../types'
+import { WeightEntry, Measurement, Milestone, PerformanceMetric, WeeklyProgress } from '../types'
 
 export class ProgressService {
   // Helper para mapear de snake_case a camelCase

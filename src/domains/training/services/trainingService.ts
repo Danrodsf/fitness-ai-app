@@ -289,7 +289,7 @@ export class TrainingService {
       // Calcular estadísticas
       const maxWeight = Math.max(...sets.map((s: any) => s.weight || 0))
       const totalReps = sets.reduce((sum: number, s: any) => sum + s.reps, 0)
-      const avgWeight = sets.length > 0 ? sets.reduce((sum: number, s: any) => sum + (s.weight || 0), 0) / sets.length : 0
+      // const avgWeight = sets.length > 0 ? sets.reduce((sum: number, s: any) => sum + (s.weight || 0), 0) / sets.length : 0
       
       // Progresión inteligente: +2.5kg para pesos >20kg, +1kg para <20kg
       const recommendedWeight = maxWeight > 20 ? maxWeight + 2.5 : maxWeight + 1

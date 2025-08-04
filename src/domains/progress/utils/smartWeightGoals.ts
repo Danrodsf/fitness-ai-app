@@ -83,7 +83,7 @@ export const estimateMonthlyMuscleGain = (
  * Función principal: Calcula objetivo de peso inteligente
  */
 export const calculateSmartWeightGoal = (userData: UserData): SmartWeightGoal => {
-  const { currentWeight, height, age, gender, experienceLevel, primaryGoal, activityLevel } = userData
+  const { currentWeight, height, age, gender, experienceLevel, primaryGoal } = userData
   const currentBMI = (currentWeight / Math.pow(height / 100, 2))
   const healthyRange = calculateHealthyWeightRange(height)
   const maxAthletic = calculateMaxAthleticWeight(height)

@@ -104,6 +104,14 @@ export const ProgressDashboard = () => {
         console.log('🔍 Obteniendo ejercicios disponibles del usuario...')
         const availableExercises = await TrainingService.getAvailableExercises(user.id)
         
+        // Verificar que availableExercises tiene la estructura correcta
+        if (!availableExercises || typeof availableExercises !== 'object' || !('ids' in availableExercises)) {
+          console.log('📊 No hay ejercicios disponibles, mostrando mensaje vacío')
+          setExerciseProgress([])
+          setIsLoadingProgress(false)
+          return
+        }
+        
         console.log(`🔍 DEBUG: ${availableExercises.totalSessions} sesiones, ${availableExercises.ids.length} ejercicios únicos`)
         
         if (availableExercises.ids.length === 0) {
@@ -120,9 +128,9 @@ export const ProgressDashboard = () => {
               const chartData = await TrainingService.getExerciseProgressChart(user.id, exerciseId, 8)
               
               // Buscar nombre legible del ejercicio
-              const exerciseName = availableExercises.names.find(name => 
+              const exerciseName = availableExercises.names?.find((name: string) => 
                 TrainingService.normalizeExerciseName(name) === exerciseId
-              ) || exerciseId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+              ) || exerciseId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
               
               console.log(`📊 Resultado para ${exerciseId}: ${chartData.length} puntos de datos`)
               
@@ -140,14 +148,10 @@ export const ProgressDashboard = () => {
         
         // Filtrar solo resultados exitosos con datos
         const validProgress = progressResults
-          .filter((result): result is PromiseFulfilledResult<{
-            exerciseId: string;
-            name: string;
-            weeklyData: Array<{ date: string; maxWeight: number; totalReps: number; trend: string }>;
-          }> => 
-            result.status === 'fulfilled' && result.value && result.value.weeklyData.length > 0
+          .filter((result: any) => 
+            result.status === 'fulfilled' && result.value && result.value.weeklyData && result.value.weeklyData.length > 0
           )
-          .map(result => result.value)
+          .map((result: any) => result.value)
         
         console.log(`📊 Progreso cargado para ${validProgress.length} ejercicios`)
         setExerciseProgress(validProgress)
