@@ -173,31 +173,31 @@ export const OnboardingFlow = () => {
   }
 
   // Funciones auxiliares para cálculos
-  const calculateCalories = (data: OnboardingData) => {
-    // Fórmula Harris-Benedict simplificada
-    let bmr = data.gender === 'male' 
-      ? 88.362 + (13.397 * data.weight) + (4.799 * data.height) - (5.677 * data.age)
-      : 447.593 + (9.247 * data.weight) + (3.098 * data.height) - (4.330 * data.age)
-    
-    const activityMultipliers = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725,
-      very_active: 1.9
-    }
-    
-    return Math.round(bmr * activityMultipliers[data.currentActivity])
-  }
+  // const calculateCalories = (data: OnboardingData) => {
+  //   // Fórmula Harris-Benedict simplificada
+  //   let bmr = data.gender === 'male' 
+  //     ? 88.362 + (13.397 * data.weight) + (4.799 * data.height) - (5.677 * data.age)
+  //     : 447.593 + (9.247 * data.weight) + (3.098 * data.height) - (4.330 * data.age)
+  //   
+  //   const activityMultipliers = {
+  //     sedentary: 1.2,
+  //     light: 1.375,
+  //     moderate: 1.55,
+  //     active: 1.725,
+  //     very_active: 1.9
+  //   }
+  //   
+  //   return Math.round(bmr * activityMultipliers[data.currentActivity])
+  // }
 
-  const calculateMacros = (data: OnboardingData) => {
-    const calories = calculateCalories(data)
-    return {
-      protein: Math.round(data.weight * 2), // 2g por kg
-      carbs: Math.round(calories * 0.4 / 4), // 40% de calorías
-      fats: Math.round(calories * 0.3 / 9) // 30% de calorías
-    }
-  }
+  // const calculateMacros = (data: OnboardingData) => {
+  //   const calories = calculateCalories(data)
+  //   return {
+  //     protein: Math.round(data.weight * 2), // 2g por kg
+  //     carbs: Math.round(calories * 0.4 / 4), // 40% de calorías
+  //     fats: Math.round(calories * 0.3 / 9) // 30% de calorías
+  //   }
+  // }
 
   const steps = [
     {

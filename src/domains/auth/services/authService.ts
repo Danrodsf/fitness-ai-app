@@ -210,7 +210,7 @@ export class AuthService {
       callback(null)
       return { data: { subscription: { unsubscribe: () => {} } } }
     }
-    return supabase.auth.onAuthStateChange((event, session) => {
+    return supabase.auth.onAuthStateChange((_event, session) => {
       callback(session?.user as AuthUser | null)
     })
   }

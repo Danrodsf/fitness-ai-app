@@ -9,7 +9,7 @@ interface AuthGuardProps {
   fallback?: ReactNode
 }
 
-export const AuthGuard = ({ children, fallback }: AuthGuardProps) => {
+export const AuthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading, logout } = useAuth()
 
   // 🔥 DEBUG: Log del estado de AuthGuard

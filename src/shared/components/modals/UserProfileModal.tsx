@@ -3,7 +3,7 @@ import { Button, Input, Badge } from '@/shared/components/ui'
 import { useAuth } from '@/domains/auth/hooks/useAuth'
 import { AIService } from '@/shared/services/AIService'
 import { useAppContext } from '@/store'
-import { X, User, Weight, Ruler, Target, AlertCircle, LogOut, RefreshCw, Settings, Sparkles } from 'lucide-react'
+import { X, User, LogOut, RefreshCw, Sparkles } from 'lucide-react'
 
 interface UserProfileModalProps {
   isOpen: boolean
@@ -22,6 +22,10 @@ export const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => 
     weight: profile?.weight || 81,
     height: profile?.height || 181,
     goals: profile?.goals || ['ganar_musculatura', 'reducir_grasa_abdominal'],
+    fitness_goals: profile?.goals || ['ganar_musculatura', 'reducir_grasa_abdominal'],
+    medical_conditions: [] as string[],
+    experience_level: 'beginner' as string,
+    workout_frequency: 3 as number,
     preferences: {
       theme: profile?.preferences?.theme || 'system' as const,
       notifications: profile?.preferences?.notifications || true,
@@ -283,7 +287,7 @@ export const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => 
                     onChange={(e) => {
                       const newGoals = e.target.checked
                         ? [...formData.fitness_goals, option.value]
-                        : formData.fitness_goals.filter(g => g !== option.value)
+                        : formData.fitness_goals.filter((g: string) => g !== option.value)
                       handleInputChange('fitness_goals', newGoals)
                     }}
                     disabled={!isEditing}
@@ -307,11 +311,11 @@ export const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => 
                 <label key={option.value} className="flex items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={formData.medical_conditions.includes(option.value)}
+                    checked={formData.medical_conditions?.includes(option.value) || false}
                     onChange={(e) => {
                       const newConditions = e.target.checked
-                        ? [...formData.medical_conditions, option.value]
-                        : formData.medical_conditions.filter(c => c !== option.value)
+                        ? [...(formData.medical_conditions || []), option.value]
+                        : (formData.medical_conditions || []).filter((c: string) => c !== option.value)
                       handleInputChange('medical_conditions', newConditions)
                     }}
                     disabled={!isEditing}
@@ -376,7 +380,7 @@ export const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => 
         {/* Actions */}
         <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
           <Button
-            variant="destructive"
+            variant="danger"
             onClick={handleLogout}
             className="flex items-center gap-2"
           >
@@ -394,13 +398,21 @@ export const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => 
                     // Resetear form data si hay perfil
                     if (profile) {
                       setFormData({
+                        name: profile.name,
                         age: profile.age,
                         weight: profile.weight,
                         height: profile.height,
-                        fitness_goals: profile.fitness_goals,
-                        medical_conditions: profile.medical_conditions,
-                        experience_level: profile.experience_level,
-                        workout_frequency: profile.workout_frequency,
+                        goals: profile.goals,
+                        fitness_goals: profile.goals,
+                        medical_conditions: [],
+                        experience_level: 'beginner',
+                        workout_frequency: 3,
+                        preferences: {
+                          theme: profile.preferences?.theme || 'system' as const,
+                          notifications: profile.preferences?.notifications || true,
+                          autoBackup: profile.preferences?.autoBackup || true,
+                          language: profile.preferences?.language || 'es',
+                        }
                       })
                     }
                   }}

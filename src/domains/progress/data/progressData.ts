@@ -1,4 +1,5 @@
 import { WeightEntry, Milestone, ProgressStats } from '../types'
+import { calculateSmartWeightGoal, UserData } from '../utils/smartWeightGoals'
 
 // Sample weight entries - empty by default
 export const sampleWeightEntries: WeightEntry[] = []
@@ -14,55 +15,67 @@ export const generatePersonalizedMilestones = (userProfile: {
   goals: string[]
   experienceLevel?: string
   primaryGoal?: string
+  gender?: 'male' | 'female'
+  activityLevel?: string
 }): Milestone[] => {
   const today = new Date()
   const milestones: Milestone[] = []
-  const bmi = calculateBMI(userProfile.weight, userProfile.height)
   
   // Determinar objetivo principal si no está especificado
   const mainGoal = userProfile.primaryGoal || userProfile.goals[0] || 'improve_fitness'
   const experience = userProfile.experienceLevel || 'beginner'
   
-  // Objetivo 1: Peso (1-3 meses)
-  if (mainGoal === 'lose_weight' || bmi > 25) {
-    const targetWeight = Math.max(
-      userProfile.weight * 0.9, // Máximo 10% de pérdida
-      22 * Math.pow(userProfile.height / 100, 2) // Peso ideal BMI 22
-    )
+  // 🔥 NUEVO: Usar calculadora inteligente de objetivos de peso
+  if (mainGoal === 'lose_weight' || mainGoal === 'gain_muscle' || mainGoal === 'maintain_weight') {
+    const userData: UserData = {
+      currentWeight: userProfile.weight,
+      height: userProfile.height,
+      age: userProfile.age,
+      gender: userProfile.gender || 'male',
+      experienceLevel: experience as any,
+      primaryGoal: mainGoal as any,
+      activityLevel: (userProfile.activityLevel || 'moderate') as any
+    }
+    
+    const smartGoal = calculateSmartWeightGoal(userData)
     const targetDate = new Date(today)
-    targetDate.setMonth(targetDate.getMonth() + (userProfile.weight > targetWeight + 10 ? 3 : 2))
+    targetDate.setMonth(targetDate.getMonth() + smartGoal.timeframe)
     
     milestones.push({
-      id: `weight-goal-${Date.now()}`,
-      title: `Alcanzar ${Math.round(targetWeight)}kg`,
-      description: `Objetivo de peso saludable (BMI ~22)`,
+      id: `smart-weight-goal-${Date.now()}`,
+      title: `${smartGoal.strategy}: ${Math.round(smartGoal.targetWeight)}kg`,
+      description: `${smartGoal.rationale} | ${smartGoal.warnings[0]}`,
       category: 'weight',
       targetDate: targetDate.toISOString().split('T')[0],
-      targetValue: Math.round(targetWeight),
+      targetValue: Math.round(smartGoal.targetWeight),
       currentValue: userProfile.weight,
       unit: 'kg',
       completed: false,
       createdAt: today.toISOString(),
       updatedAt: today.toISOString()
     })
-  } else if (mainGoal === 'gain_muscle') {
-    const targetWeight = userProfile.weight + (experience === 'beginner' ? 5 : 3)
-    const targetDate = new Date(today)
-    targetDate.setMonth(targetDate.getMonth() + (experience === 'beginner' ? 4 : 3))
     
-    milestones.push({
-      id: `muscle-weight-goal-${Date.now()}`,
-      title: `Ganar masa muscular (${Math.round(targetWeight)}kg)`,
-      description: 'Incremento saludable de peso con músculo',
-      category: 'weight',
-      targetDate: targetDate.toISOString().split('T')[0],
-      targetValue: Math.round(targetWeight),
-      currentValue: userProfile.weight,
-      unit: 'kg',
-      completed: false,
-      createdAt: today.toISOString(),
-      updatedAt: today.toISOString()
-    })
+    // Agregar milestones mensuales si es ganancia muscular
+    if (mainGoal === 'gain_muscle' && smartGoal.monthlyTargets.length > 1) {
+      smartGoal.monthlyTargets.slice(0, 3).forEach((monthlyTarget, index) => {
+        const monthlyDate = new Date(today)
+        monthlyDate.setMonth(monthlyDate.getMonth() + monthlyTarget.month)
+        
+        milestones.push({
+          id: `monthly-goal-${monthlyTarget.month}-${Date.now()}`,
+          title: `Mes ${monthlyTarget.month}: ${Math.round(monthlyTarget.weight)}kg`,
+          description: `${monthlyTarget.focus} - Progreso gradual hacia objetivo`,
+          category: 'weight',
+          targetDate: monthlyDate.toISOString().split('T')[0],
+          targetValue: Math.round(monthlyTarget.weight),
+          currentValue: userProfile.weight,
+          unit: 'kg',
+          completed: false,
+          createdAt: today.toISOString(),
+          updatedAt: today.toISOString()
+        })
+      })
+    }
   }
   
   // Objetivo 2: Fuerza (2-6 semanas)

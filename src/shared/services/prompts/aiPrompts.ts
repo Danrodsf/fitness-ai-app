@@ -28,7 +28,7 @@ export class AIPrompts {
   /**
    * 🏋️ PROMPT SOLO PARA ENTRENAMIENTO
    */
-  static generateTrainingOnlyPrompt(data: OnboardingData, bmr: number): string {
+  static generateTrainingOnlyPrompt(data: OnboardingData): string {
     return `Eres un ENTRENADOR PERSONAL CERTIFICADO (NSCA-CPT) con especialización en periodización científica y programación de entrenamientos personalizados.
 
 PERFIL COMPLETO DEL CLIENTE:

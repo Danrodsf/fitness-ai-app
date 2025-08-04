@@ -18,8 +18,7 @@ export class AIService {
 
   // 🔥 PROMPT SOLO PARA ENTRENAMIENTO
   static generateTrainingOnlyPrompt(data: OnboardingData): string {
-    const bmr = NutritionCalculator.calculateBMR(data)
-    return AIPrompts.generateTrainingOnlyPrompt(data, bmr)
+    return AIPrompts.generateTrainingOnlyPrompt(data)
   }
 
   // 🔥 PROMPT SOLO PARA NUTRICIÓN

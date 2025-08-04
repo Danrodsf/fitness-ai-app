@@ -4,7 +4,7 @@ import { useAuth } from '@/domains/auth/hooks/useAuth'
 import { AIService } from '@/shared/services/AIService'
 import { TrainingService } from '../services/trainingService'
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@/shared/components/ui'
-import { AlertTriangle, Sparkles, Target, RefreshCw, Settings } from 'lucide-react'
+import { Sparkles, Target, RefreshCw } from 'lucide-react'
 import { WorkoutDayCard } from './WorkoutDayCard'
 import { defaultTrainingProgram } from '../data/trainingData'
 

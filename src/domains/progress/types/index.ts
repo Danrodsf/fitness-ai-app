@@ -69,11 +69,13 @@ export interface WeeklyProgress {
 
 // Progress domain actions
 export type ProgressAction = 
+  | { type: 'WEIGHT_HISTORY_LOAD'; payload: WeightEntry[] }
   | { type: 'WEIGHT_ENTRY_ADD'; payload: WeightEntry }
   | { type: 'WEIGHT_ENTRY_UPDATE'; payload: { id: string; data: Partial<WeightEntry> } }
   | { type: 'WEIGHT_ENTRY_DELETE'; payload: { id: string } }
   | { type: 'MEASUREMENT_ADD'; payload: Measurement }
   | { type: 'PHOTO_ADD'; payload: ProgressPhoto }
+  | { type: 'MILESTONE_HISTORY_LOAD'; payload: Milestone[] }
   | { type: 'MILESTONE_ADD'; payload: Milestone }
   | { type: 'MILESTONE_COMPLETE'; payload: { id: string } }
   | { type: 'STATS_CALCULATE' }

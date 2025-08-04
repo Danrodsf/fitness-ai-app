@@ -38,7 +38,7 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
         exercisesCount: workoutDay.exercises.length,
         exercises: workoutDay.exercises.map(ex => ({
           id: ex.exercise?.id || 'NO_ID',
-          name: ex.exercise?.name || ex.name || 'NO_NAME',
+          name: ex.exercise?.name || 'NO_NAME',
           structure: Object.keys(ex)
         }))
       })
@@ -75,7 +75,7 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
         sessionId: newSession.id,
         exercisesInSession: newSession.exercises.map(ex => ({
           id: ex.exercise?.id || 'NO_ID',
-          name: ex.exercise?.name || ex.name || 'NO_NAME',
+          name: ex.exercise?.name || 'NO_NAME',
           actualSets: ex.actualSets.length
         }))
       })

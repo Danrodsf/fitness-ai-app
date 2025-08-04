@@ -54,7 +54,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
       
       // Si ya hay una llamada pendiente para este usuario, no hacer otra
-      const callKey = `${userId}-${source}`
       if (pendingCalls.has(userId)) {
         console.log(`⏳ Llamada ya en progreso para ${userId}, saltando ${source}`)
         return

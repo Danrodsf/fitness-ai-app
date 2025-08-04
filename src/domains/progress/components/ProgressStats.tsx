@@ -1,6 +1,7 @@
 import { useAppContext } from '@/store'
 import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui'
-import { BarChart3, TrendingDown, Calendar, Flame } from 'lucide-react'
+import { BarChart3, Flame } from 'lucide-react'
+import { WeightProgressChart } from './WeightProgressChart'
 
 export const ProgressStats = () => {
   const { state } = useAppContext()
@@ -35,38 +36,8 @@ export const ProgressStats = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {/* Weight stats */}
-          <div>
-            <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-              📊 Seguimiento de Peso
-            </h4>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div className="flex items-center justify-center mb-2">
-                  <TrendingDown className="text-blue-600 dark:text-blue-400" size={20} />
-                </div>
-                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                  {stats.weightChange >= 0 ? '+' : ''}{stats.weightChange}kg
-                </div>
-                <div className="text-sm text-blue-600 dark:text-blue-400">
-                  Cambio total
-                </div>
-              </div>
-
-              <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <div className="flex items-center justify-center mb-2">
-                  <Calendar className="text-green-600 dark:text-green-400" size={20} />
-                </div>
-                <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                  {stats.averageWeeklyWeightChange >= 0 ? '+' : ''}{stats.averageWeeklyWeightChange}kg
-                </div>
-                <div className="text-sm text-green-600 dark:text-green-400">
-                  Por semana
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Weight progress chart */}
+          <WeightProgressChart />
 
           {/* Tracking streaks */}
           <div>

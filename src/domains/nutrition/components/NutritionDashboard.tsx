@@ -4,12 +4,12 @@ import { useAuth } from '@/domains/auth/hooks/useAuth'
 import { AIService } from '@/shared/services/AIService'
 import { NutritionService } from '../services/nutritionService'
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@/shared/components/ui'
-import { Target, Flame, Droplets, Sparkles, Apple, RefreshCw } from 'lucide-react'
+import { Flame, Droplets, Sparkles, Apple, RefreshCw, Target } from 'lucide-react'
 import { MealPlanCard } from './MealPlanCard'
 import { ProteinShakeGuide } from './ProteinShakeGuide'
 import { ShoppingList } from './ShoppingList'
 import { defaultNutritionGoals, defaultWeeklyMealPlan } from '../data/nutritionData'
-import { transformAIDayToDayMealPlan, transformNewAIFormatToDayMealPlan, isAIFormat, isNewAIFormat } from '@/shared/utils/nutritionTransformers'
+import { transformAIDayToDayMealPlan, isAIFormat } from '@/shared/utils/nutritionTransformers'
 
 export const NutritionDashboard = () => {
   const { state, dispatch } = useAppContext()
@@ -246,7 +246,7 @@ export const NutritionDashboard = () => {
     const ingredientCounts: Record<string, { category: string, count: number }> = {}
     
     // Mapeo de ingredientes a categorías
-    const categoryMapping: Record<string, string> = {
+    const categoryMapping: Record<string, 'proteins' | 'grains' | 'vegetables' | 'pantry' | 'dairy'> = {
       'Huevos': 'proteins',
       'Pechuga de pollo': 'proteins', 
       'Pollo': 'proteins',
@@ -283,7 +283,7 @@ export const NutritionDashboard = () => {
         if (meal.foods && Array.isArray(meal.foods)) {
           meal.foods.forEach(food => {
             const ingredientName = food.name
-            const category = categoryMapping[ingredientName] || 'pantry'
+            const category = categoryMapping[ingredientName] || ('pantry' as const)
             
             if (ingredientCounts[ingredientName]) {
               ingredientCounts[ingredientName].count++
@@ -316,7 +316,7 @@ export const NutritionDashboard = () => {
       }
       
       return {
-        category: data.category,
+        category: data.category as 'proteins' | 'vegetables' | 'grains' | 'dairy' | 'pantry',
         name,
         quantity,
         estimated: true

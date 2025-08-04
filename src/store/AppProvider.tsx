@@ -88,39 +88,42 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     loadUserData()
   }, [user, profile, authLoading, lastUserId])
 
-  // Auto-save data changes
-  useEffect(() => {
-    const saveData = async () => {
-      try {
-        if (user) {
-          // User is logged in, sync to Supabase
-          await StorageService.syncUserData(user.id, state)
-        } else {
-          // User not logged in, save to localStorage
-          await StorageService.saveData(state)
-        }
-      } catch (error) {
-        console.error('Error saving data:', error)
-        // Fallback to localStorage if Supabase fails
-        try {
-          await StorageService.saveData(state)
-        } catch (localError) {
-          console.error('Error saving to localStorage:', localError)
-        }
-      }
-    }
+  // 🔥 DESHABILITADO: Auto-sync que causaba loops infinitos de POSTs
+  // El auto-sync sincronizaba TODO el estado en cada cambio, causando cientos de POSTs
+  // Los datos ahora se guardan individualmente en cada componente cuando es necesario
+  
+  // useEffect(() => {
+  //   const saveData = async () => {
+  //     try {
+  //       if (user) {
+  //         // User is logged in, sync to Supabase
+  //         await StorageService.syncUserData(user.id, state)
+  //       } else {
+  //         // User not logged in, save to localStorage
+  //         await StorageService.saveData(state)
+  //       }
+  //     } catch (error) {
+  //       console.error('Error saving data:', error)
+  //       // Fallback to localStorage if Supabase fails
+  //       try {
+  //         await StorageService.saveData(state)
+  //       } catch (localError) {
+  //         console.error('Error saving to localStorage:', localError)
+  //       }
+  //     }
+  //   }
 
-    // 🔥 CAMBIO: No guardar datos si onboarding no está completado
-    const shouldSave = !authLoading && 
-                       profile?.preferences?.onboardingCompleted && 
-                       (state.user.profile || state.progress.weightHistory.length > 0)
+  //   // 🔥 CAMBIO: No guardar datos si onboarding no está completado
+  //   const shouldSave = !authLoading && 
+  //                      profile?.preferences?.onboardingCompleted && 
+  //                      (state.user.profile || state.progress.weightHistory.length > 0)
 
-    if (shouldSave) {
-      // Debounce the save operation
-      const timeoutId = setTimeout(saveData, 2000)
-      return () => clearTimeout(timeoutId)
-    }
-  }, [state, user, profile, authLoading])
+  //   if (shouldSave) {
+  //     // Debounce the save operation
+  //     const timeoutId = setTimeout(saveData, 2000)
+  //     return () => clearTimeout(timeoutId)
+  //   }
+  // }, [state, user, profile, authLoading])
 
   // Handle system theme changes
   useEffect(() => {

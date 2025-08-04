@@ -1,5 +1,5 @@
 import { supabase } from '@/domains/auth/services/authService'
-import { WorkoutSession, TrainingProgram, Exercise, ExerciseSet, WorkoutExercise } from '../types'
+import { WorkoutSession, TrainingProgram } from '../types'
 
 export class TrainingService {
   // Helper para verificar Supabase
@@ -106,8 +106,8 @@ export class TrainingService {
       const exercisesJson = sessionData.exercises.map(exercise => ({
         exercise_id: exercise.exercise.id,
         exercise_name: exercise.exercise.name,
-        planned_sets: exercise.plannedSets || exercise.sets || 3,
-        planned_reps: exercise.plannedReps || exercise.reps || '8-12',
+        planned_sets: exercise.plannedSets || 3,
+        planned_reps: exercise.plannedReps || '8-12',
         completed: exercise.completed || false,
         sets: exercise.actualSets.map(set => ({
           reps: set.reps,
@@ -226,10 +226,10 @@ export class TrainingService {
       
       // Procesar datos del JSON de la sesión
       if (session.session_data?.exercises) {
-        session.session_data.exercises.forEach((exercise: any) => {
+        session.session_data.exercises.forEach((exercise: { exercise_id: string, sets?: Array<{ weight?: number, reps: number }> }) => {
           week.exercisesCompleted.add(exercise.exercise_id)
           
-          exercise.sets?.forEach((set: any) => {
+          exercise.sets?.forEach((set: { weight?: number, reps: number }) => {
             week.totalSets += 1
             week.totalVolume += (set.weight || 0) * set.reps
             week.maxWeightLifted = Math.max(week.maxWeightLifted, set.weight || 0)
@@ -398,5 +398,219 @@ export class TrainingService {
         recommendedWeight: 0
       }
     }
+  }
+
+  // 🔥 NUEVO: Función para debuggear qué ejercicios existen en la BD
+  static async getAvailableExercises(userId: string) {
+    try {
+      console.log('🔍 DEBUG: Buscando ejercicios disponibles en BD...')
+      
+      const supabaseClient = this.ensureSupabase()
+      const { data: sessions, error } = await supabaseClient
+        .from('workout_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('completed', true)
+        .order('start_time', { ascending: false })
+
+      if (error) {
+        console.error('❌ Error obteniendo sesiones:', error)
+        return []
+      }
+
+      const exerciseIds = new Set<string>()
+      const exerciseNames = new Set<string>()
+
+      sessions?.forEach(session => {
+        try {
+          const sessionData = session.session_data
+          if (sessionData && sessionData.exercises) {
+            sessionData.exercises.forEach((ex: any) => {
+              if (ex.exercise_id) exerciseIds.add(ex.exercise_id)
+              if (ex.exercise?.id) exerciseIds.add(ex.exercise.id)
+              if (ex.exercise?.name) {
+                exerciseNames.add(ex.exercise.name)
+                exerciseIds.add(this.normalizeExerciseName(ex.exercise.name))
+              }
+            })
+          }
+        } catch (e) {
+          console.warn('⚠️ Error procesando sesión:', e)
+        }
+      })
+
+      console.log('🔍 DEBUG: Ejercicios encontrados por ID:', Array.from(exerciseIds))
+      console.log('🔍 DEBUG: Ejercicios encontrados por nombre:', Array.from(exerciseNames))
+      
+      return {
+        ids: Array.from(exerciseIds),
+        names: Array.from(exerciseNames),
+        totalSessions: sessions?.length || 0
+      }
+    } catch (error) {
+      console.error('❌ Error obteniendo ejercicios disponibles:', error)
+      return { ids: [], names: [], totalSessions: 0 }
+    }
+  }
+
+  // 🔥 NUEVO: Función para obtener progreso de fuerza por ejercicio
+  static async getExerciseProgressChart(userId: string, exerciseId: string, weeksBack: number = 8) {
+    if (!userId || !exerciseId) {
+      console.warn('❌ getExerciseProgressChart: faltan parámetros')
+      return []
+    }
+
+    try {
+      console.log(`📊 Obteniendo progreso de fuerza para ${exerciseId} (${weeksBack} semanas)`)
+      
+      // 1. Obtener todas las sesiones del usuario de las últimas semanas
+      const cutoffDate = new Date()
+      cutoffDate.setDate(cutoffDate.getDate() - (weeksBack * 7))
+      
+      const supabaseClient = this.ensureSupabase()
+      const { data: sessions, error } = await supabaseClient
+        .from('workout_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('completed', true)
+        .gte('start_time', cutoffDate.toISOString())
+        .order('start_time', { ascending: true })
+
+      if (error) {
+        console.error('❌ Error obteniendo sesiones:', error)
+        return []
+      }
+
+      if (!sessions || sessions.length === 0) {
+        console.log('📊 No hay sesiones de entrenamiento en las últimas semanas')
+        return []
+      }
+
+      console.log(`📊 Procesando ${sessions.length} sesiones para progreso de ${exerciseId}`)
+
+      // 2. Extraer datos del ejercicio específico de cada sesión
+      const exerciseData: Array<{
+        date: string
+        maxWeight: number
+        totalReps: number
+        sets: Array<{ reps: number; weight: number }>
+      }> = []
+
+      for (const session of sessions) {
+        try {
+          const sessionData = session.session_data
+          if (!sessionData || !sessionData.exercises) {
+            console.log(`⚠️ Sesión ${session.id} sin datos de ejercicios`)
+            continue
+          }
+
+          console.log(`🔍 Sesión ${session.id}: ${sessionData.exercises.length} ejercicios`)
+          
+          // DEBUG: Mostrar qué ejercicios hay en esta sesión
+          sessionData.exercises.forEach((ex: any, idx: number) => {
+            console.log(`  Ejercicio ${idx}: id="${ex.exercise_id}", exercise.id="${ex.exercise?.id}", name="${ex.exercise?.name}"`)
+          })
+
+          // Buscar el ejercicio específico en la sesión
+          const exerciseInSession = sessionData.exercises.find((ex: any) => 
+            ex.exercise_id === exerciseId || 
+            ex.exercise?.id === exerciseId ||
+            (ex.exercise?.name && this.normalizeExerciseName(ex.exercise.name) === exerciseId)
+          )
+          
+          console.log(`🔍 Ejercicio "${exerciseId}" ${exerciseInSession ? 'ENCONTRADO' : 'NO ENCONTRADO'} en sesión ${session.id}`)
+
+          if (!exerciseInSession) {
+            continue
+          }
+
+          // 🔍 DEBUG: Ver estructura completa del ejercicio encontrado
+          console.log(`🔍 DEBUG: Estructura del ejercicio encontrado:`, {
+            exercise_id: exerciseInSession.exercise_id,
+            exercise: exerciseInSession.exercise,
+            actualSets: exerciseInSession.actualSets,
+            sets: exerciseInSession.sets,
+            completedSets: exerciseInSession.completedSets,
+            allKeys: Object.keys(exerciseInSession)
+          })
+
+          // Buscar sets en diferentes campos posibles
+          let sets = exerciseInSession.actualSets || 
+                    exerciseInSession.sets || 
+                    exerciseInSession.completedSets || 
+                    exerciseInSession.recorded_sets || []
+
+          if (!sets || sets.length === 0) {
+            console.log(`⚠️ No se encontraron sets para ${exerciseId} en sesión ${session.id}`)
+            continue
+          }
+
+          console.log(`✅ ${exerciseId}: ${sets.length} sets encontrados en sesión ${session.id}`)
+
+          const maxWeight = Math.max(...sets.map((s: any) => s.weight || 0))
+          const totalReps = sets.reduce((sum: number, s: any) => sum + (s.reps || 0), 0)
+
+          exerciseData.push({
+            date: session.start_time.split('T')[0],
+            maxWeight,
+            totalReps,
+            sets: sets.map((s: any) => ({ reps: s.reps || 0, weight: s.weight || 0 }))
+          })
+
+        } catch (sessionError) {
+          console.warn('⚠️ Error procesando sesión:', sessionError)
+          continue
+        }
+      }
+
+      if (exerciseData.length === 0) {
+        console.log(`📊 No se encontraron datos para ${exerciseId}`)
+        return []
+      }
+
+      console.log(`📊 Datos extraídos para ${exerciseId}:`, exerciseData.length, 'sesiones')
+
+      // 3. Ordenar por fecha y generar datos para gráfico de líneas
+      const chartData = exerciseData
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map((data, index) => {
+          const sessionDate = new Date(data.date)
+          const dateLabel = `${sessionDate.getDate()}/${sessionDate.getMonth() + 1}`
+          
+          // Calcular tendencia comparando con sesión anterior
+          let trend = 'stable'
+          if (index > 0) {
+            const prevWeight = exerciseData[index - 1].maxWeight
+            if (data.maxWeight > prevWeight) trend = 'up'
+            else if (data.maxWeight < prevWeight) trend = 'down'
+          }
+
+          return {
+            date: dateLabel,
+            fullDate: data.date,
+            maxWeight: data.maxWeight,
+            totalReps: data.totalReps,
+            trend,
+            sets: data.sets
+          }
+        })
+
+      console.log(`✅ Progreso generado para ${exerciseId}:`, chartData.length, 'semanas')
+      return chartData
+
+    } catch (error) {
+      console.error(`❌ Error obteniendo progreso de ${exerciseId}:`, error)
+      return []
+    }
+  }
+
+  // Helper function para normalizar nombres de ejercicios
+  static normalizeExerciseName(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '')
+      .replace(/--+/g, '-')
   }
 }

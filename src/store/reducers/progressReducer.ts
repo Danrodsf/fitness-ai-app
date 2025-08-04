@@ -5,6 +5,20 @@ export const progressReducer = (state: ProgressState, action: AppAction): Progre
   if (!isProgressAction(action)) return state
 
   switch (action.type) {
+    case 'WEIGHT_HISTORY_LOAD':
+      return {
+        ...state,
+        weightHistory: action.payload,
+        error: null,
+      }
+
+    case 'MILESTONE_HISTORY_LOAD':
+      return {
+        ...state,
+        milestones: action.payload,
+        error: null,
+      }
+
     case 'WEIGHT_ENTRY_ADD':
       // Remove any existing entry for the same date
       const filteredWeightHistory = state.weightHistory.filter(
@@ -135,6 +149,13 @@ function calculateProgressStats(weightHistory: any[], _measurements: any[]) {
   // Calculate streaks
   const currentStreak = calculateCurrentStreak(sortedWeights)
   const longestStreak = calculateLongestStreak(sortedWeights)
+  
+  console.log('📊 Calculando estadísticas de peso:', {
+    totalEntries: weightHistory.length,
+    currentStreak,
+    longestStreak,
+    dates: sortedWeights.map(w => w.date)
+  })
 
   // Calculate average weekly change
   const totalWeeks = Math.max(1, Math.floor(weightHistory.length / 7))
@@ -151,15 +172,90 @@ function calculateProgressStats(weightHistory: any[], _measurements: any[]) {
 }
 
 function calculateCurrentStreak(sortedWeights: any[]): number {
-  // Implementation for current streak calculation
-  // This is a simplified version - you might want to implement more sophisticated logic
-  return sortedWeights.length > 0 ? Math.min(7, sortedWeights.length) : 0
+  if (sortedWeights.length === 0) return 0
+
+  // Ordenar por fecha descendente (más reciente primero)
+  const recentFirst = [...sortedWeights].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+
+  console.log('🔄 Calculando racha actual:', {
+    totalEntries: recentFirst.length,
+    recentDates: recentFirst.slice(0, 5).map(w => w.date)
+  })
+
+  let currentStreak = 0
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Normalizar a medianoche
+
+  for (let i = 0; i < recentFirst.length; i++) {
+    const entryDate = new Date(recentFirst[i].date)
+    entryDate.setHours(0, 0, 0, 0)
+    
+    // Calcular diferencia en días
+    const daysDiff = Math.floor((today.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (i === 0) {
+      // Primera entrada - debe ser hoy o ayer para contar como racha actual
+      if (daysDiff <= 1) {
+        currentStreak = 1
+      } else {
+        break // No hay racha actual si el último registro es muy antiguo
+      }
+    } else {
+      // Verificar si es consecutivo con el anterior
+      const prevEntryDate = new Date(recentFirst[i - 1].date)
+      prevEntryDate.setHours(0, 0, 0, 0)
+      const daysBetween = Math.floor((prevEntryDate.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysBetween === 1) {
+        currentStreak++
+      } else {
+        break // Rompe la racha
+      }
+    }
+  }
+
+  console.log('✅ Racha actual calculada:', currentStreak)
+  return currentStreak
 }
 
 function calculateLongestStreak(sortedWeights: any[]): number {
-  // Implementation for longest streak calculation
-  // This is a simplified version - you might want to implement more sophisticated logic
-  return sortedWeights.length
+  if (sortedWeights.length === 0) return 0
+
+  // Ordenar por fecha ascendente
+  const chronological = [...sortedWeights].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  )
+
+  let longestStreak = 1
+  let currentStreak = 1
+
+  for (let i = 1; i < chronological.length; i++) {
+    const currentDate = new Date(chronological[i].date)
+    const prevDate = new Date(chronological[i - 1].date)
+    
+    // Normalizar a medianoche
+    currentDate.setHours(0, 0, 0, 0)
+    prevDate.setHours(0, 0, 0, 0)
+    
+    // Calcular diferencia en días
+    const daysDiff = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24))
+    
+    if (daysDiff === 1) {
+      // Días consecutivos
+      currentStreak++
+      longestStreak = Math.max(longestStreak, currentStreak)
+    } else if (daysDiff === 0) {
+      // Mismo día (múltiples registros) - mantener racha
+      continue
+    } else {
+      // Rompe la racha
+      currentStreak = 1
+    }
+  }
+
+  return longestStreak
 }
 
 // Type guard to check if action is a progress action

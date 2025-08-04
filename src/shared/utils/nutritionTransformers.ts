@@ -215,7 +215,7 @@ function generateShoppingListFromDays(days: DayMealPlan[]): any[] {
 }
 
 // Función para transformar plan semanal completo de IA
-export function transformAIWeeklyPlan(aiPlan: AIWeeklyPlan, userId: string): WeeklyMealPlan {
+export function transformAIWeeklyPlan(aiPlan: AIWeeklyPlan): WeeklyMealPlan {
   const transformedDays = aiPlan.days.map(transformAIDayToDayMealPlan)
 
   return {

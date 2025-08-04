@@ -1,6 +1,5 @@
 import { AppState } from '@/store'
 import { ProgressService } from '@/domains/progress/services/progressService'
-import { TrainingService } from '@/domains/training/services/trainingService'
 import { NutritionService } from '@/domains/nutrition/services/nutritionService'
 
 export class StorageService {

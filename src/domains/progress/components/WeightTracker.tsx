@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { useAppContext } from '@/store'
+import { useAuth } from '@/domains/auth/hooks/useAuth'
+import { ProgressService } from '../services/progressService'
+import { useProgressData } from '../hooks/useProgressData'
 import { Card, CardHeader, CardTitle, CardContent, Button, Input } from '@/shared/components/ui'
 import { Plus, Scale, TrendingDown, TrendingUp, Minus } from 'lucide-react'
 import { format } from 'date-fns'
@@ -7,11 +10,16 @@ import { es } from 'date-fns/locale'
 
 export const WeightTracker = () => {
   const { state, dispatch } = useAppContext()
+  const { user } = useAuth()
   const [newWeight, setNewWeight] = useState('')
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0])
   const [notes, setNotes] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleAddWeight = () => {
+  // 🔥 SOLUCIÓN DEFINITIVA: Usar custom hook que maneja toda la carga
+  useProgressData()
+
+  const handleAddWeight = async () => {
     if (!newWeight || !newDate || parseFloat(newWeight) <= 0) {
       dispatch({
         type: 'NOTIFICATION_ADD',
@@ -24,38 +32,69 @@ export const WeightTracker = () => {
       return
     }
 
-    const weightEntry = {
-      id: `weight-${Date.now()}`,
-      weight: parseFloat(newWeight),
-      date: newDate,
-      notes: notes || undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+    if (!user?.id) {
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'error',
+          title: 'Error de autenticación',
+          message: 'Debes estar logueado para registrar peso'
+        }
+      })
+      return
     }
 
+    setIsLoading(true)
 
-    dispatch({
-      type: 'WEIGHT_ENTRY_ADD',
-      payload: weightEntry,
-    })
+    try {
+      console.log('💾 Guardando peso en BD:', { weight: parseFloat(newWeight), date: newDate, notes })
+      
+      // 🔥 CORREGIDO: Guardar en BD primero
+      const savedEntry = await ProgressService.addWeightEntry(user.id, {
+        weight: parseFloat(newWeight),
+        date: newDate,
+        notes: notes || undefined,
+      })
 
-    dispatch({
-      type: 'STATS_CALCULATE'
-    })
+      console.log('✅ Peso guardado en BD:', savedEntry)
 
-    dispatch({
-      type: 'NOTIFICATION_ADD',
-      payload: {
-        type: 'success',
-        title: 'Peso registrado',
-        message: `${newWeight}kg guardado correctamente`
-      }
-    })
+      // Actualizar estado local con el dato guardado en BD
+      dispatch({
+        type: 'WEIGHT_ENTRY_ADD',
+        payload: savedEntry,
+      })
 
-    // Reset form
-    setNewWeight('')
-    setNewDate(new Date().toISOString().split('T')[0])
-    setNotes('')
+      dispatch({
+        type: 'STATS_CALCULATE'
+      })
+
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'success',
+          title: 'Peso registrado',
+          message: `${newWeight}kg guardado en base de datos`
+        }
+      })
+
+      // Reset form
+      setNewWeight('')
+      setNewDate(new Date().toISOString().split('T')[0])
+      setNotes('')
+
+    } catch (error) {
+      console.error('❌ Error guardando peso:', error)
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'error',
+          title: 'Error guardando peso',
+          message: 'No se pudo guardar en la base de datos'
+        }
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleDeleteEntry = (id: string) => {
@@ -125,11 +164,11 @@ export const WeightTracker = () => {
 
             <Button 
               onClick={handleAddWeight}
-              disabled={!newWeight || !newDate || parseFloat(newWeight) <= 0}
-              leftIcon={<Plus size={16} />}
+              disabled={!newWeight || !newDate || parseFloat(newWeight) <= 0 || isLoading}
+              leftIcon={!isLoading ? <Plus size={16} /> : undefined}
               className="w-full"
             >
-              Registrar Peso
+              {isLoading ? 'Guardando...' : 'Registrar Peso'}
             </Button>
           </div>
 

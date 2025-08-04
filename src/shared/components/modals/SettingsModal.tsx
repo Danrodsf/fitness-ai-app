@@ -51,7 +51,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
         
         // Validar estructura básica
         if (importedData.user && importedData.training) {
-          dispatch({ type: 'IMPORT_DATA', payload: importedData })
+          dispatch({ type: 'APP_HYDRATE', payload: importedData })
           alert('Datos importados correctamente')
         } else {
           alert('Archivo inválido')
@@ -66,7 +66,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 
   const handleClearData = () => {
     if (confirm('¿Estás seguro de que quieres borrar todos los datos? Esta acción no se puede deshacer.')) {
-      dispatch({ type: 'RESET_ALL_DATA' })
+      dispatch({ type: 'APP_RESET' })
       alert('Datos borrados correctamente')
       onClose()
     }
@@ -129,7 +129,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                 </span>
               </div>
               <Button
-                variant={notifications ? "default" : "outline"}
+                variant={notifications ? "primary" : "outline"}
                 size="sm"
                 onClick={() => setNotifications(!notifications)}
               >
@@ -194,7 +194,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
                   </span>
                 </div>
                 <Button
-                  variant="destructive"
+                  variant="danger"
                   size="sm"
                   onClick={handleClearData}
                 >

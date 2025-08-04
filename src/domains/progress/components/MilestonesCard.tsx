@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { useAppContext } from '@/store'
+import { useAuth } from '@/domains/auth/hooks/useAuth'
+import { ProgressService } from '../services/progressService'
+import { useProgressData } from '../hooks/useProgressData'
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input } from '@/shared/components/ui'
 import { Target, Plus, CheckCircle, Calendar, Trophy, Dumbbell, Heart, Repeat } from 'lucide-react'
 import { format } from 'date-fns'
@@ -7,7 +10,9 @@ import { es } from 'date-fns/locale'
 
 export const MilestonesCard = () => {
   const { state, dispatch } = useAppContext()
+  const { user } = useAuth()
   const [showAddForm, setShowAddForm] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [newMilestone, setNewMilestone] = useState({
     title: '',
     description: '',
@@ -17,63 +22,131 @@ export const MilestonesCard = () => {
     unit: 'kg'
   })
 
-  const handleCompleteMilestone = (id: string) => {
-    dispatch({
-      type: 'MILESTONE_COMPLETE',
-      payload: { id }
-    })
+  // 🔥 SOLUCIÓN DEFINITIVA: Usar custom hook que maneja toda la carga
+  useProgressData()
 
-    dispatch({
-      type: 'NOTIFICATION_ADD',
-      payload: {
-        type: 'success',
-        title: '🎉 ¡Logro alcanzado!',
-        message: 'Has completado un objetivo'
-      }
-    })
+  const handleCompleteMilestone = async (id: string) => {
+    if (!user?.id) return
+
+    try {
+      console.log('🎯 Completando milestone en BD:', id)
+      
+      // Completar en BD primero
+      await ProgressService.completeMilestone(id)
+      
+      console.log('✅ Milestone completado en BD')
+
+      // Actualizar estado local
+      dispatch({
+        type: 'MILESTONE_COMPLETE',
+        payload: { id }
+      })
+
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'success',
+          title: '🎉 ¡Logro alcanzado!',
+          message: 'Objetivo completado y guardado'
+        }
+      })
+      
+    } catch (error) {
+      console.error('❌ Error completando milestone:', error)
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'error',
+          title: 'Error',
+          message: 'No se pudo completar el objetivo'
+        }
+      })
+    }
   }
 
-  const handleAddMilestone = () => {
-    if (!newMilestone.title || !newMilestone.targetDate) return
-
-    const milestone = {
-      id: `milestone-${Date.now()}`,
-      title: newMilestone.title,
-      description: newMilestone.description,
-      targetDate: newMilestone.targetDate,
-      category: newMilestone.category,
-      targetValue: parseFloat(newMilestone.targetValue) || undefined,
-      currentValue: 0,
-      unit: newMilestone.unit,
-      completed: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  const handleAddMilestone = async () => {
+    if (!newMilestone.title || !newMilestone.targetDate) {
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'error',
+          title: 'Datos incompletos',
+          message: 'Por favor completa título y fecha objetivo'
+        }
+      })
+      return
     }
 
-    dispatch({
-      type: 'MILESTONE_ADD',
-      payload: milestone
-    })
+    if (!user?.id) {
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'error',
+          title: 'Error de autenticación',
+          message: 'Debes estar logueado para crear objetivos'
+        }
+      })
+      return
+    }
 
-    dispatch({
-      type: 'NOTIFICATION_ADD',
-      payload: {
-        type: 'success',
-        title: 'Objetivo añadido',
-        message: newMilestone.title
-      }
-    })
+    setIsLoading(true)
 
-    // Reset form
-    setNewMilestone({
-      title: '',
-      description: '',
-      targetDate: '',
-      category: 'weight',
-      targetValue: '',
-      unit: 'kg'
-    })
-    setShowAddForm(false)
+    try {
+      console.log('💾 Guardando milestone en BD:', newMilestone)
+      
+      // 🔥 CORREGIDO: Guardar en BD primero
+      const savedMilestone = await ProgressService.addMilestone(user.id, {
+        title: newMilestone.title,
+        description: newMilestone.description,
+        targetDate: newMilestone.targetDate,
+        category: newMilestone.category,
+        targetValue: parseFloat(newMilestone.targetValue) || undefined,
+        currentValue: 0,
+        unit: newMilestone.unit,
+        completed: false,
+      })
+
+      console.log('✅ Milestone guardado en BD:', savedMilestone)
+
+      // Actualizar estado local con el dato guardado en BD
+      dispatch({
+        type: 'MILESTONE_ADD',
+        payload: savedMilestone
+      })
+
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'success',
+          title: 'Objetivo añadido',
+          message: `${newMilestone.title} guardado en base de datos`
+        }
+      })
+
+      // Reset form
+      setNewMilestone({
+        title: '',
+        description: '',
+        targetDate: '',
+        category: 'weight',
+        targetValue: '',
+        unit: 'kg'
+      })
+      setShowAddForm(false)
+
+    } catch (error) {
+      console.error('❌ Error guardando milestone:', error)
+      dispatch({
+        type: 'NOTIFICATION_ADD',
+        payload: {
+          type: 'error',
+          title: 'Error guardando objetivo',
+          message: 'No se pudo guardar en la base de datos'
+        }
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getCategoryIcon = (category: string) => {
@@ -200,8 +273,12 @@ export const MilestonesCard = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={handleAddMilestone} className="flex-1">
-                  Añadir objetivo
+                <Button 
+                  onClick={handleAddMilestone} 
+                  disabled={!newMilestone.title || !newMilestone.targetDate || isLoading}
+                  className="flex-1"
+                >
+                  {isLoading ? 'Guardando...' : 'Añadir objetivo'}
                 </Button>
                 <Button variant="ghost" onClick={() => setShowAddForm(false)}>
                   Cancelar
