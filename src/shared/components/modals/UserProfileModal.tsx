@@ -151,12 +151,12 @@ export const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => 
   ]
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-6 relative z-10 shadow-2xl max-h-[85vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-4 sm:p-6 relative z-10 shadow-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Mi Perfil
           </h2>
           <Button
@@ -198,7 +198,7 @@ export const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => 
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
               Información Básica
             </h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Edad

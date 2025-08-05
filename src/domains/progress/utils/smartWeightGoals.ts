@@ -88,12 +88,6 @@ export const calculateSmartWeightGoal = (userData: UserData): SmartWeightGoal =>
   const healthyRange = calculateHealthyWeightRange(height)
   const maxAthletic = calculateMaxAthleticWeight(height)
 
-  console.log('🎯 Calculando objetivo inteligente:', {
-    currentWeight,
-    currentBMI: currentBMI.toFixed(1),
-    healthyRange,
-    maxAthletic: maxAthletic.toFixed(1)
-  })
 
   // CASO 1: GANAR MÚSCULO
   if (primaryGoal === 'gain_muscle') {

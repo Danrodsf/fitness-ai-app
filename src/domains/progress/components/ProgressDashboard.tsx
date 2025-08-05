@@ -42,7 +42,6 @@ export const ProgressDashboard = () => {
 
     // 🔥 NUEVO: Generar objetivos personalizados basados en el perfil del usuario
     if (state.progress.milestones.length === 0 && profile) {
-      console.log('📊 Generando objetivos personalizados...')
       
       // Obtener datos del onboarding si están disponibles
       const onboardingData = profile.preferences?.onboardingData
@@ -65,7 +64,6 @@ export const ProgressDashboard = () => {
         })
       })
       
-      console.log(`✅ ${personalizedMilestones.length} objetivos personalizados generados`)
     } else if (state.progress.milestones.length === 0) {
       // Fallback a objetivos por defecto si no hay perfil
       defaultMilestones.forEach(milestone => {
@@ -89,33 +87,27 @@ export const ProgressDashboard = () => {
       
       setIsLoadingProgress(true)
       try {
-        console.log('📊 Cargando progreso de ejercicios con método optimizado...')
         
         // Primero verificar si tenemos sesiones completadas
         const trainingStats = await TrainingService.getTrainingStats(user.id)
         
         if (!trainingStats || trainingStats.length === 0) {
-          console.log('📊 No hay datos de entrenamiento aún')
           setExerciseProgress([])
           return
         }
 
         // 🔥 ARREGLADO: Obtener ejercicios reales del usuario en lugar de lista hardcoded
-        console.log('🔍 Obteniendo ejercicios disponibles del usuario...')
         const availableExercises = await TrainingService.getAvailableExercises(user.id)
         
         // Verificar que availableExercises tiene la estructura correcta
         if (!availableExercises || typeof availableExercises !== 'object' || !('ids' in availableExercises)) {
-          console.log('📊 No hay ejercicios disponibles, mostrando mensaje vacío')
           setExerciseProgress([])
           setIsLoadingProgress(false)
           return
         }
         
-        console.log(`🔍 DEBUG: ${availableExercises.totalSessions} sesiones, ${availableExercises.ids.length} ejercicios únicos`)
         
         if (availableExercises.ids.length === 0) {
-          console.log('📊 No hay ejercicios disponibles, mostrando mensaje vacío')
           setExerciseProgress([])
           setIsLoadingProgress(false)
           return
@@ -124,7 +116,6 @@ export const ProgressDashboard = () => {
         const progressResults = await Promise.allSettled(
           availableExercises.ids.map(async (exerciseId: string) => {
             try {
-              console.log(`📊 Obteniendo progreso para: ${exerciseId}`)
               const chartData = await TrainingService.getExerciseProgressChart(user.id, exerciseId, 8)
               
               // Buscar nombre legible del ejercicio
@@ -132,7 +123,6 @@ export const ProgressDashboard = () => {
                 TrainingService.normalizeExerciseName(name) === exerciseId
               ) || exerciseId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
               
-              console.log(`📊 Resultado para ${exerciseId}: ${chartData.length} puntos de datos`)
               
               return {
                 exerciseId,
@@ -153,7 +143,6 @@ export const ProgressDashboard = () => {
           )
           .map((result: any) => result.value)
         
-        console.log(`📊 Progreso cargado para ${validProgress.length} ejercicios`)
         setExerciseProgress(validProgress)
         
       } catch (error) {
@@ -193,13 +182,6 @@ export const ProgressDashboard = () => {
     
     const smartGoal = calculateSmartWeightGoal(userData)
     
-    console.log('🎯 Dashboard: Objetivo inteligente calculado:', {
-      currentWeight,
-      targetWeight: smartGoal.targetWeight,
-      strategy: smartGoal.strategy,
-      timeframe: smartGoal.timeframe,
-      userData
-    })
     
     return {
       targetWeight: smartGoal.targetWeight,
@@ -214,90 +196,92 @@ export const ProgressDashboard = () => {
   const initialWeight = profile?.weight // Peso inicial del registro
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Progress Header */}
       <Card variant="glass">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl text-primary-600 dark:text-primary-400">
+        <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 xs:gap-4">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base xs:text-lg sm:text-xl md:text-2xl text-primary-600 dark:text-primary-400 break-words">
                 Seguimiento de Progreso
               </CardTitle>
-              <p className="mt-2 text-gray-600 dark:text-gray-300">
+              <p className="mt-2 text-xs xs:text-sm sm:text-base text-gray-600 dark:text-gray-300 break-words">
                 Registra tu evolución y alcanza tus objetivos
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="text-success-600 dark:text-success-400" size={24} />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <TrendingUp className="text-success-600 dark:text-success-400" size={20} />
             </div>
           </div>
         </CardHeader>
       </Card>
 
       {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-3 sm:gap-4">
         <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center mb-4">
-              <TrendingUp className="text-primary-600 dark:text-primary-400" size={24} />
+          <CardContent className="p-2 xs:p-3 sm:p-4">
+            <div className="flex items-center justify-center mb-2">
+              <TrendingUp className="text-primary-600 dark:text-primary-400" size={16} />
             </div>
-            <div className="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-1">
+            <div className="text-sm xs:text-base sm:text-lg font-bold text-primary-600 dark:text-primary-400 mb-1">
               {currentWeight}kg
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
               Peso Actual
             </div>
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center mb-4">
-              <Target className="text-orange-600 dark:text-orange-400" size={24} />
+          <CardContent className="p-2 xs:p-3 sm:p-4">
+            <div className="flex items-center justify-center mb-2">
+              <Target className="text-orange-600 dark:text-orange-400" size={16} />
             </div>
-            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+            <div className="text-sm xs:text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400 mb-1">
               {Math.round(targetWeight)}kg
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-gray-500 dark:text-gray-400 break-words">
               {smartTarget.strategy}
             </div>
-            <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-              {smartTarget.timeframe ? `${smartTarget.timeframe} meses` : ''}
-            </div>
+            {smartTarget.timeframe && (
+              <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                {smartTarget.timeframe}m
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center mb-4">
-              <Activity className="text-green-600 dark:text-green-400" size={24} />
+          <CardContent className="p-2 xs:p-3 sm:p-4">
+            <div className="flex items-center justify-center mb-2">
+              <Activity className="text-green-600 dark:text-green-400" size={16} />
             </div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
+            <div className="text-sm xs:text-base sm:text-lg font-bold text-green-600 dark:text-green-400 mb-1">
               {targetWeight > currentWeight ? 
                 `+${(targetWeight - currentWeight).toFixed(1)}` : 
                 `${(targetWeight - currentWeight).toFixed(1)}`}kg
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
               {targetWeight > currentWeight ? 'Por ganar' : 
                targetWeight < currentWeight ? 'Por perder' : 'Mantener'}
             </div>
             <div className="text-xs text-green-600 dark:text-green-400 mt-1">
               {state.progress.stats?.totalDaysTracked ? 
-                `${state.progress.stats.totalDaysTracked} días registrados` : 
-                'Comenzar seguimiento'}
+                `${state.progress.stats.totalDaysTracked} días` : 
+                'Comenzar'}
             </div>
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center mb-4">
-              <Award className="text-purple-600 dark:text-purple-400" size={24} />
+          <CardContent className="p-2 xs:p-3 sm:p-4">
+            <div className="flex items-center justify-center mb-2">
+              <Award className="text-purple-600 dark:text-purple-400" size={16} />
             </div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+            <div className="text-sm xs:text-base sm:text-lg font-bold text-purple-600 dark:text-purple-400 mb-1">
               {state.progress.milestones.filter(m => m.completed).length}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
               Logros
             </div>
           </CardContent>
@@ -305,9 +289,9 @@ export const ProgressDashboard = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-2 gap-3 xs:gap-4 lg:gap-8">
         {/* Left Column */}
-        <div className="space-y-6">
+        <div className="space-y-3 xs:space-y-4 sm:space-y-6">
           <WeightTracker />
           <BMICard 
             currentWeight={currentWeight} 
@@ -319,7 +303,7 @@ export const ProgressDashboard = () => {
         </div>
 
         {/* Right Column */}
-        <div className="space-y-6">
+        <div className="space-y-3 xs:space-y-4 sm:space-y-6">
           <MilestonesCard />
           <ProgressStats />
         </div>

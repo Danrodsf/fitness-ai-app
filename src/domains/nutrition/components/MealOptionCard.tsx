@@ -36,32 +36,32 @@ export const MealOptionCard = ({ option, type }: MealOptionCardProps) => {
 
   return (
     <Card variant="bordered" className={clsx('transition-all duration-200', typeColors[type])}>
-      <CardContent className="p-4">
-        <div className="space-y-3">
+      <CardContent className="p-2 xs:p-3 sm:p-4">
+        <div className="space-y-2 xs:space-y-3">
           {/* Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h5 className="font-semibold text-gray-900 dark:text-white mb-1">
+          <div className="flex flex-col xs:flex-row xs:items-start xs:justify-between gap-2 xs:gap-0">
+            <div className="flex-1 min-w-0">
+              <h5 className="font-semibold text-gray-900 dark:text-white mb-1 text-sm xs:text-base break-words">
                 {option.title}
               </h5>
               {option.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                <p className="text-xs xs:text-sm text-gray-600 dark:text-gray-300 mb-2 break-words">
                   {option.description}
                 </p>
               )}
               
-              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-4 text-xs xs:text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-1">
-                  <Clock size={14} />
-                  {option.prepTime} min
+                  <Clock size={12} />
+                  <span>{option.prepTime} min</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Utensils size={14} />
-                  {option.calories} cal
+                  <Utensils size={12} />
+                  <span>{option.calories} cal</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="font-medium">{option.protein}g</span>
-                  <span>proteína</span>
+                  <span>prot</span>
                 </div>
               </div>
             </div>
@@ -70,30 +70,31 @@ export const MealOptionCard = ({ option, type }: MealOptionCardProps) => {
               variant="ghost"
               size="sm"
               onClick={() => setShowDetails(!showDetails)}
-              rightIcon={showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              rightIcon={showDetails ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              className="text-xs xs:text-sm px-2 xs:px-3 flex-shrink-0 w-full xs:w-auto"
             >
-              {showDetails ? 'Ocultar' : 'Detalles'}
+              {showDetails ? 'Ocultar' : 'Ver'}
             </Button>
           </div>
 
           {/* Food list */}
-          <div className="space-y-2">
+          <div className="space-y-1 xs:space-y-2">
             {safeFoods.slice(0, showDetails ? undefined : 3).map((food, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
+              <div key={index} className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1 xs:gap-0 text-xs xs:text-sm">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <div className="w-2 h-2 bg-primary-400 rounded-full flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">
+                  <span className="text-gray-700 dark:text-gray-300 break-words">
                     {food.name || 'Ingrediente sin nombre'}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-2 xs:gap-3 text-gray-500 dark:text-gray-400 text-xs ml-4 xs:ml-0">
                   <span>{food.quantity || '—'} {food.unit || ''}</span>
                   {showDetails && (
                     <>
-                      <span>|</span>
+                      <span className="hidden xs:inline">|</span>
                       <span>{food.calories || 0} cal</span>
-                      <span>|</span>
-                      <span>{food.protein || 0}g prot</span>
+                      <span className="hidden xs:inline">|</span>
+                      <span>{food.protein || 0}g</span>
                     </>
                   )}
                 </div>
@@ -101,20 +102,20 @@ export const MealOptionCard = ({ option, type }: MealOptionCardProps) => {
             ))}
             
             {!showDetails && safeFoods.length > 3 && (
-              <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-1">
-                ... y {safeFoods.length - 3} ingredientes más
+              <div className="text-xs xs:text-sm text-gray-500 dark:text-gray-400 text-center py-1">
+                ... y {safeFoods.length - 3} más
               </div>
             )}
           </div>
 
           {/* Recipe */}
           {showDetails && option.recipe && (
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-              <h6 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                <Utensils size={14} />
+            <div className="pt-2 xs:pt-3 border-t border-gray-200 dark:border-gray-700">
+              <h6 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2 text-sm xs:text-base">
+                <Utensils size={12} />
                 Receta
               </h6>
-              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p className="text-xs xs:text-sm text-gray-600 dark:text-gray-300 leading-relaxed break-words">
                 {option.recipe}
               </p>
             </div>
@@ -122,8 +123,8 @@ export const MealOptionCard = ({ option, type }: MealOptionCardProps) => {
 
           {/* Nutritional summary */}
           {showDetails && (
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="grid grid-cols-4 gap-2 text-center text-sm">
+            <div className="pt-2 xs:pt-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-2 xs:grid-cols-4 gap-2 text-center text-xs xs:text-sm">
                 <div>
                   <div className="font-semibold text-gray-900 dark:text-white">
                     {option.calories}

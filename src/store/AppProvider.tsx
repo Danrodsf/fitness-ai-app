@@ -27,7 +27,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         if (user) {
           // 🔥 CAMBIO IMPORTANTE: Solo cargar datos de BD si el onboarding está completado
           if (profile?.preferences?.onboardingCompleted) {
-            console.log('📊 Usuario con onboarding completado - cargando datos desde BD...')
             const userData = await StorageService.loadUserData(user.id)
             if (userData) {
               dispatch({ type: 'APP_HYDRATE', payload: userData })
@@ -44,7 +43,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
               initializeDefaultData()
             }
           } else {
-            console.log('⏸️ Onboarding no completado - NO cargar datos de BD')
             // Solo inicializar datos por defecto, sin llamadas a BD
             initializeDefaultData()
           }

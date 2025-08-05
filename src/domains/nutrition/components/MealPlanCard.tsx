@@ -28,26 +28,21 @@ export const MealPlanCard = ({ dayPlan }: MealPlanCardProps) => {
   // Detectar tipo de formato y transformar
   if (dayPlan && isNewAIFormat(dayPlan)) {
     try {
-      console.log('🔄 Transformando NUEVO formato de IA:', dayPlan)
       processedDayPlan = transformNewAIFormatToDayMealPlan(dayPlan as any)
-      console.log('✅ Transformación exitosa:', processedDayPlan)
     } catch (error) {
       console.error('❌ Error transformando NUEVO formato de IA:', error)
       processedDayPlan = dayPlan
     }
   } else if (dayPlan && isAIFormat(dayPlan)) {
     try {
-      console.log('🔄 Transformando formato de IA ORIGINAL:', dayPlan)
       processedDayPlan = transformAIDayToDayMealPlan(dayPlan as any)
     } catch (error) {
       console.error('❌ Error transformando datos de IA original:', error)
       processedDayPlan = dayPlan
     }
   } else if (dayPlan && isStandardFormat(dayPlan)) {
-    console.log('✅ Formato estándar detectado:', dayPlan)
     processedDayPlan = dayPlan
   } else if (dayPlan) {
-    console.warn('⚠️ Formato de datos no reconocido:', dayPlan)
   }
 
   // 🔥 VALIDACIÓN DEFENSIVA: Asegurar que las propiedades existen y son arrays
@@ -58,7 +53,6 @@ export const MealPlanCard = ({ dayPlan }: MealPlanCardProps) => {
 
   // Solo log si no hay comidas
   if (totalMeals === 0) {
-    console.warn(`⚠️ No hay comidas para ${processedDayPlan?.day}`)
   }
 
   // Si no hay processedDayPlan válido, mostrar mensaje de error
@@ -78,50 +72,54 @@ export const MealPlanCard = ({ dayPlan }: MealPlanCardProps) => {
 
   return (
     <Card className="transition-all duration-300">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg">
+      <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-6">
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2 xs:gap-0">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-sm xs:text-base sm:text-lg break-words">
               {dayNames[processedDayPlan.day] || processedDayPlan.day?.toUpperCase() || 'DÍA DESCONOCIDO'}
             </CardTitle>
-            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-4 mt-2 text-xs xs:text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <span className="font-medium">{processedDayPlan.totalCalories || '—'}</span>
-                <span>calorías</span>
+                <span>cal</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="font-medium">{processedDayPlan.totalProtein || '—'}g</span>
-                <span>proteína</span>
+                <span>prot</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Badge variant="primary" size="sm">
-              {totalMeals} opciones
+          <div className="flex items-center gap-1 xs:gap-2 flex-shrink-0">
+            <Badge variant="primary" size="sm" className="text-xs">
+              {totalMeals}
             </Badge>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
-              rightIcon={isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              rightIcon={isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              className="text-xs xs:text-sm px-2 xs:px-3"
             >
-              {isExpanded ? 'Contraer' : 'Ver comidas'}
+              {isExpanded ? 'Ocultar' : 'Ver'}
             </Button>
           </div>
         </div>
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="animate-slide-down">
-          <div className="space-y-6">
+        <CardContent className="animate-slide-down p-2 xs:p-3 sm:p-4 md:p-6">
+          <div className="space-y-4 xs:space-y-6">
             {/* Breakfast */}
             <div>
-              <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-4">
-                <Sun className="text-yellow-500" size={18} />
-                DESAYUNO (7:00-8:00 AM)
+              <h4 className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2 font-semibold text-gray-900 dark:text-white mb-3 xs:mb-4 text-sm xs:text-base">
+                <div className="flex items-center gap-2">
+                  <Sun className="text-yellow-500" size={16} />
+                  <span>DESAYUNO</span>
+                </div>
+                <span className="text-xs text-gray-500">(7:00-8:00)</span>
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2 xs:space-y-3">
                 {safeBreakfast.length > 0 ? (
                   safeBreakfast.map((option, index) => (
                     <MealOptionCard 
@@ -131,18 +129,21 @@ export const MealPlanCard = ({ dayPlan }: MealPlanCardProps) => {
                     />
                   ))
                 ) : (
-                  <p className="text-gray-500 text-sm">No hay opciones de desayuno disponibles</p>
+                  <p className="text-gray-500 text-xs xs:text-sm">No hay opciones de desayuno</p>
                 )}
               </div>
             </div>
 
             {/* Lunch */}
             <div>
-              <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-4">
-                <Clock className="text-orange-500" size={18} />
-                ALMUERZO (13:00-14:00) - MÁS ELABORADO
+              <h4 className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2 font-semibold text-gray-900 dark:text-white mb-3 xs:mb-4 text-sm xs:text-base">
+                <div className="flex items-center gap-2">
+                  <Clock className="text-orange-500" size={16} />
+                  <span>ALMUERZO</span>
+                </div>
+                <span className="text-xs text-gray-500">(13:00-14:00)</span>
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2 xs:space-y-3">
                 {safeLunch.length > 0 ? (
                   safeLunch.map((option, index) => (
                     <MealOptionCard 
@@ -152,19 +153,24 @@ export const MealPlanCard = ({ dayPlan }: MealPlanCardProps) => {
                     />
                   ))
                 ) : (
-                  <p className="text-gray-500 text-sm">No hay opciones de almuerzo disponibles</p>
+                  <p className="text-gray-500 text-xs xs:text-sm">No hay opciones de almuerzo</p>
                 )}
               </div>
             </div>
 
             {/* Dinner */}
             <div>
-              <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-4">
-                <Moon className="text-purple-500" size={18} />
-                CENA (20:00-21:00) - SÚPER SENCILLO
-                <Badge variant="outline" size="sm">Máx 10 min</Badge>
+              <h4 className="flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2 font-semibold text-gray-900 dark:text-white mb-3 xs:mb-4 text-sm xs:text-base">
+                <div className="flex items-center gap-2">
+                  <Moon className="text-purple-500" size={16} />
+                  <span>CENA</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">(20:00-21:00)</span>
+                  <Badge variant="outline" size="sm" className="text-xs">10 min</Badge>
+                </div>
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2 xs:space-y-3">
                 {safeDinner.length > 0 ? (
                   safeDinner.map((option, index) => (
                     <MealOptionCard 
@@ -174,7 +180,7 @@ export const MealPlanCard = ({ dayPlan }: MealPlanCardProps) => {
                     />
                   ))
                 ) : (
-                  <p className="text-gray-500 text-sm">No hay opciones de cena disponibles</p>
+                  <p className="text-gray-500 text-xs xs:text-sm">No hay opciones de cena</p>
                 )}
               </div>
             </div>

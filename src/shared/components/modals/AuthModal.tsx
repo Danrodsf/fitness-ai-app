@@ -30,7 +30,6 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   // 🔥 FUNCIONES HELPER para localStorage
   const setEmailVerificationPending = (email: string) => {
-    console.log('💾 Guardando verificación pendiente:', email)
     localStorage.setItem('pending_email_verification', 'true')
     localStorage.setItem('pending_email_address', email)
     setShowEmailVerification(true)
@@ -38,7 +37,6 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   }
 
   const clearEmailVerificationPending = () => {
-    console.log('🧹 Limpiando verificación pendiente')
     localStorage.removeItem('pending_email_verification')
     localStorage.removeItem('pending_email_address')
     setShowEmailVerification(false)
@@ -48,21 +46,10 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   // 🔥 LIMPIAR verificación pendiente cuando el usuario se verifica
   React.useEffect(() => {
     if (user && user.email_confirmed_at && showEmailVerification) {
-      console.log('✅ Usuario verificado, limpiando estado pendiente')
       clearEmailVerificationPending()
     }
   }, [user, showEmailVerification])
 
-  // 🔥 DEBUG: Logs del estado
-  React.useEffect(() => {
-    console.log('👀 AuthModal state:', { 
-      user: !!user, 
-      showEmailVerification, 
-      registeredEmail,
-      isLogin,
-      isRegistrationInProgress
-    })
-  }, [user, showEmailVerification, registeredEmail, isLogin, isRegistrationInProgress])
 
   if (!isOpen) return null
 
@@ -72,12 +59,9 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
     try {
       if (isLogin) {
-        console.log('🔑 Intentando login...')
         await login({ email: formData.email, password: formData.password })
-        console.log('✅ Login exitoso')
         onClose()
       } else {
-        console.log('📝 Intentando registro...', { email: formData.email })
         setIsRegistrationInProgress(true)
         
         await register({
@@ -85,7 +69,6 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           password: formData.password,
           confirmPassword: formData.confirmPassword,
         })
-        console.log('✅ Registro exitoso, configurando verificación pendiente')
         
         // 🔥 USAR FUNCIÓN PERSISTENTE
         setEmailVerificationPending(formData.email)
@@ -102,15 +85,9 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   }
 
   const switchMode = () => {
-    console.log('🔄 switchMode called', { 
-      isRegistrationInProgress, 
-      showEmailVerification,
-      registeredEmail 
-    })
     
     // 🔥 NO permitir cambio de modo durante registro o cuando se muestra verificación
     if (isRegistrationInProgress || showEmailVerification) {
-      console.log('🚫 switchMode bloqueado: registro en progreso o verificación activa')
       return
     }
     
@@ -121,7 +98,6 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   }
 
   const handleBackToLogin = () => {
-    console.log('🔙 handleBackToLogin called')
     clearEmailVerificationPending()
     setIsLogin(true)
     setFormData({ email: '', password: '', confirmPassword: '' })
@@ -130,7 +106,6 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   // Mostrar pantalla de verificación de email si corresponde
   if (showEmailVerification && registeredEmail) {
-    console.log('📧 Renderizando EmailVerificationScreen', { registeredEmail })
     return (
       <EmailVerificationScreen 
         email={registeredEmail}

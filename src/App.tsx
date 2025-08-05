@@ -28,16 +28,6 @@ export const App = () => {
   const isOnboardingRequired = user && !loading && (!profile || !profile?.preferences?.onboardingCompleted)
   const isReady = user && !loading && profile && profile?.preferences?.onboardingCompleted
 
-  console.log('🔍 App render state:', {
-    hasUser: !!user,
-    hasProfile: !!profile,
-    loading,
-    isProfileLoading,
-    isOnboardingRequired,
-    isReady,
-    onboardingCompleted: profile?.preferences?.onboardingCompleted,
-    userEmailConfirmed: user?.email_confirmed_at
-  })
 
   return (
     <AuthGuard>
@@ -56,7 +46,7 @@ export const App = () => {
         <OnboardingFlow />
       ) : isReady ? (
         <Layout>
-          <div className="space-y-8">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
             
             <div className="animate-fade-in">

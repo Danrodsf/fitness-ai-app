@@ -27,7 +27,6 @@ export class NutritionService {
       notes: null
     }
     
-    console.log('📤 Guardando objetivos nutricionales:', dbGoals)
     
     // 🔥 ESTRATEGIA ALTERNATIVA: Verificar si existe primero
     const { data: existing } = await client
@@ -39,7 +38,6 @@ export class NutritionService {
     let data, error
     if (existing) {
       // UPDATE si existe
-      console.log('🔄 Actualizando objetivos existentes...')
       const result = await client
         .from('nutrition_goals')
         .update(dbGoals)
@@ -50,7 +48,6 @@ export class NutritionService {
       error = result.error
     } else {
       // INSERT si no existe
-      console.log('➕ Creando nuevos objetivos...')
       const result = await client
         .from('nutrition_goals')
         .insert(dbGoals)
@@ -65,7 +62,6 @@ export class NutritionService {
       throw error
     }
     
-    console.log('✅ Objetivos nutricionales guardados en BD')
     return data as NutritionGoals
   }
 
@@ -181,7 +177,6 @@ export class NutritionService {
       throw error
     }
     
-    console.log('✅ Plan de comidas guardado correctamente en BD')
     return data
   }
 

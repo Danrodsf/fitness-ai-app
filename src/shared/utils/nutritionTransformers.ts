@@ -261,15 +261,12 @@ interface AINewFormat {
 
 // 🔥 NUEVO: Transformador para el nuevo formato de IA
 export function transformNewAIFormatToDayMealPlan(newAIData: AINewFormat): DayMealPlan {
-  console.log('🔄 Iniciando transformación de nuevo formato:', newAIData)
   
   try {
     const dayKey = dayNameMapping[newAIData.day] || newAIData.day.toLowerCase()
-    console.log('📅 Día transformado:', newAIData.day, '→', dayKey)
     
     // Mapear meals array a breakfast, lunch, dinner
     const meals = newAIData.meals || []
-    console.log('🍽️ Meals array:', meals.length, 'comidas')
     
     const breakfast = meals[0] ? transformNewAIMealToMealOption(meals[0], 'breakfast') : null
     const lunch = meals[1] ? transformNewAIMealToMealOption(meals[1], 'lunch') : null  
@@ -287,7 +284,6 @@ export function transformNewAIFormatToDayMealPlan(newAIData: AINewFormat): DayMe
       updatedAt: new Date().toISOString()
     }
     
-    console.log('✅ Transformación completada:', result)
     return result
   } catch (error) {
     console.error('❌ Error en transformación:', error)
@@ -311,7 +307,6 @@ function transformNewAIMealToMealOption(aiMeal: any, mealType: string): MealOpti
   const carbLower = typeof carb === 'string' ? carb.toLowerCase() : 'carbohidrato'
   const vegLower = typeof vegetable === 'string' ? vegetable.toLowerCase() : 'verdura'
   
-  console.log('🔍 Transformando meal:', { name, protein, carb, vegetable, total })
   
   return {
     title: name,
@@ -375,7 +370,6 @@ export function isNewAIFormat(data: any): boolean {
            data.totals &&
            typeof data.totals === 'object'
   } catch (error) {
-    console.warn('Error detectando nuevo formato de IA:', error)
     return false
   }
 }

@@ -3,7 +3,6 @@
  */
 
 export const clearAllAuthState = () => {
-  console.log('🧹 Limpiando todo el estado de autenticación...')
   
   // Limpiar localStorage relacionado con auth
   const authKeys = [
@@ -21,23 +20,19 @@ export const clearAllAuthState = () => {
   // También limpiar cualquier key que contenga 'supabase' o 'auth'
   Object.keys(localStorage).forEach(key => {
     if (key.includes('supabase') || key.includes('auth')) {
-      console.log('🗑️ Removiendo key:', key)
       localStorage.removeItem(key)
     }
   })
   
   Object.keys(sessionStorage).forEach(key => {
     if (key.includes('supabase') || key.includes('auth')) {
-      console.log('🗑️ Removiendo sessionStorage key:', key)
       sessionStorage.removeItem(key)
     }
   })
   
-  console.log('✅ Estado de auth limpiado')
 }
 
 export const forceLogout = async () => {
-  console.log('🚪 Forzando logout completo...')
   
   // Limpiar estado local
   clearAllAuthState()
@@ -51,7 +46,6 @@ export const forceLogout = async () => {
     if (supabaseUrl && supabaseAnonKey) {
       const supabase = createClient(supabaseUrl, supabaseAnonKey)
       await supabase.auth.signOut()
-      console.log('✅ Logout de Supabase completado')
     }
   } catch (error) {
     console.warn('⚠️ Error en logout de Supabase:', error)

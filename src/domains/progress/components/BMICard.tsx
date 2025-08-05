@@ -20,17 +20,17 @@ export const BMICard = ({ currentWeight, height, targetWeight, initialWeight }: 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="text-green-600" />
-          Índice de Masa Corporal (IMC)
+      <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-6">
+        <CardTitle className="flex items-center gap-2 text-sm xs:text-base sm:text-lg">
+          <Activity className="text-green-600" size={16} />
+          <span className="break-words">IMC</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
+      <CardContent className="p-2 xs:p-3 sm:p-4 md:p-6">
+        <div className="space-y-4 xs:space-y-6">
           {/* Current BMI */}
           <div className="text-center">
-            <div className="text-4xl font-bold mb-2" style={{ color: bmiInfo.color.split(' ')[0] }}>
+            <div className="text-2xl xs:text-3xl sm:text-4xl font-bold mb-2" style={{ color: bmiInfo.color.split(' ')[0] }}>
               {bmi}
             </div>
             <Badge 
@@ -40,17 +40,18 @@ export const BMICard = ({ currentWeight, height, targetWeight, initialWeight }: 
                 bmi < 30 ? 'warning' : 'danger'
               }
               size="lg"
+              className="text-xs xs:text-sm"
             >
               {bmiInfo.category}
             </Badge>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+            <p className="text-xs xs:text-sm text-gray-600 dark:text-gray-300 mt-2 break-words">
               {bmiInfo.description}
             </p>
           </div>
 
           {/* BMI Scale */}
           <div className="space-y-2">
-            <div className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+            <div className="text-xs xs:text-sm font-medium text-gray-900 dark:text-white mb-2 xs:mb-3">
               Escala IMC
             </div>
             
@@ -80,7 +81,7 @@ export const BMICard = ({ currentWeight, height, targetWeight, initialWeight }: 
               <span>35</span>
             </div>
             
-            <div className="grid grid-cols-4 gap-1 text-xs text-center">
+            <div className="grid grid-cols-2 xs:grid-cols-4 gap-1 text-xs text-center">
               <span className="text-blue-600">Bajo</span>
               <span className="text-green-600">Normal</span>
               <span className="text-yellow-600">Sobrepeso</span>
@@ -90,12 +91,12 @@ export const BMICard = ({ currentWeight, height, targetWeight, initialWeight }: 
 
           {/* Weight goal progress - solo si se proporcionan objetivos */}
           {goalStatus && (
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-900 dark:text-white">
+            <div className="space-y-2 xs:space-y-3">
+              <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-1 xs:gap-0">
+                <span className="text-xs xs:text-sm font-medium text-gray-900 dark:text-white">
                   Progreso hacia objetivo
                 </span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">
+                <span className="text-xs xs:text-sm text-gray-600 dark:text-gray-300">
                   {goalStatus.percentage.toFixed(1)}%
                 </span>
               </div>
@@ -107,7 +108,7 @@ export const BMICard = ({ currentWeight, height, targetWeight, initialWeight }: 
                 />
               </div>
               
-              <div className="grid grid-cols-3 gap-4 text-center text-sm">
+              <div className="grid grid-cols-3 gap-2 xs:gap-4 text-center text-xs xs:text-sm">
                 <div>
                   <div className="font-semibold text-gray-900 dark:text-white">
                     {goalStatus.lostSoFar.toFixed(1)}kg

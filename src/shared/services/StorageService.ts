@@ -51,7 +51,6 @@ export class StorageService {
       if (data.training.workoutHistory.length > 0) {
         for (const session of data.training.workoutHistory) {
           // This would require more complex logic to properly sync workout sessions
-          console.log('Syncing workout session:', session.id)
         }
       }
 
@@ -75,7 +74,6 @@ export class StorageService {
   static async loadUserData(userId: string): Promise<Partial<AppState> | null> {
     try {
       // 🔥 TEMPORAL: Deshabilitar carga automática que causa errores 400
-      console.log('⏸️ Carga automática de datos de progreso deshabilitada para evitar errores 400')
       
       // Load progress data (DESHABILITADO TEMPORALMENTE)
       // const [weightHistory, milestones, performanceMetrics, weeklyProgress] = await Promise.all([

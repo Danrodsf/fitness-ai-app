@@ -38,7 +38,6 @@ export const NutritionDashboard = () => {
       }
 
       try {
-        console.log('📊 Cargando datos nutricionales desde BD...')
         
         // Cargar objetivos nutricionales
         const goals = await NutritionService.getNutritionGoals(user.id)
@@ -61,13 +60,11 @@ export const NutritionDashboard = () => {
             type: 'MEAL_PLAN_LOAD',
             payload: mealPlan,
           })
-          console.log('✅ Datos nutricionales cargados desde BD')
         } else {
           dispatch({
             type: 'MEAL_PLAN_LOAD',
             payload: defaultWeeklyMealPlan,
           })
-          console.log('⚠️ Usando datos por defecto')
         }
       } catch (error) {
         console.error('❌ Error cargando datos nutricionales:', error)
@@ -104,23 +101,17 @@ export const NutritionDashboard = () => {
 
     setIsRegenerating(true)
     try {
-      console.log('🔄 Regenerando SOLO plan nutricional...')
-      console.log('👤 Datos de usuario disponibles:', profile.preferences.onboardingData)
       
       // Regenerar SOLO plan nutricional con IA
       const newNutritionPlan = await AIService.regenerateNutritionPlan(profile.preferences.onboardingData)
-      console.log('🍽️ Nuevo plan nutricional recibido:', newNutritionPlan)
       
       // Guardar SOLO el nuevo plan nutricional en Supabase
       if (user.id) {
-        console.log('💾 Guardando en Supabase...')
         await NutritionService.saveNutritionGoals(user.id, newNutritionPlan.goals)
         await NutritionService.saveWeeklyMealPlan(user.id, newNutritionPlan.weeklyPlan)
-        console.log('✅ Nuevo plan nutricional guardado en BD')
       }
       
       // Actualizar perfil manteniendo el plan de entrenamiento existente
-      console.log('🔄 Actualizando perfil de usuario...')
       const updatedAiPlans = {
         ...profile.preferences.aiPlans,
         nutritionPlan: newNutritionPlan // Solo actualizar nutrición
@@ -135,7 +126,6 @@ export const NutritionDashboard = () => {
       })
 
       // Recargar datos nutricionales en el estado
-      console.log('🔄 Actualizando estado local...')
       dispatch({
         type: 'NUTRITION_GOALS_UPDATE',
         payload: newNutritionPlan.goals,
@@ -146,7 +136,6 @@ export const NutritionDashboard = () => {
         payload: newNutritionPlan.weeklyPlan,
       })
 
-      console.log('✅ Regeneración completa exitosa')
       dispatch({
         type: 'NOTIFICATION_ADD',
         payload: {
@@ -197,11 +186,6 @@ export const NutritionDashboard = () => {
   const getNutritionMetrics = () => {
     // Si tenemos goals de la IA, usarlos directamente
     if (goals?.dailyCalories && goals?.dailyProtein) {
-      console.log('📊 Usando objetivos de la IA:', {
-        dailyCalories: goals.dailyCalories,
-        dailyProtein: goals.dailyProtein,
-        source: 'AI_GOALS'
-      })
       
       return {
         avgDailyCalories: goals.dailyCalories,
@@ -213,11 +197,6 @@ export const NutritionDashboard = () => {
     // Fallback: Si no hay goals, tratar de obtener del primer día del plan
     if (weeklyPlan?.days?.[0]?.totalCalories) {
       const firstDay = weeklyPlan.days[0]
-      console.log('📊 Usando datos del primer día como referencia:', {
-        dailyCalories: firstDay.totalCalories,
-        dailyProtein: firstDay.totalProtein,
-        source: 'FIRST_DAY'
-      })
       
       return {
         avgDailyCalories: firstDay.totalCalories,
@@ -227,7 +206,6 @@ export const NutritionDashboard = () => {
     }
 
     // Fallback final
-    console.log('⚠️ No hay datos nutricionales disponibles, usando valores por defecto')
     return {
       avgDailyCalories: 2000,
       avgDailyProtein: 120,
@@ -327,53 +305,53 @@ export const NutritionDashboard = () => {
   const dynamicShoppingList = generateDynamicShoppingList()
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Nutrition Goals Header */}
       <Card variant="glass">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <CardTitle className="text-2xl text-primary-600 dark:text-primary-400">
+        <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 xs:gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-3 mb-2">
+                <CardTitle className="text-base xs:text-lg sm:text-xl md:text-2xl text-primary-600 dark:text-primary-400 break-words">
                   Plan Alimenticio
                 </CardTitle>
                 {isAIGenerated && (
-                  <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-medium rounded-full">
-                    <Sparkles className="w-4 h-4" />
-                    Generado por IA
+                  <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-medium rounded-full">
+                    <Sparkles className="w-3 h-3" />
+                    IA
                   </div>
                 )}
               </div>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-xs xs:text-sm text-gray-600 dark:text-gray-300 break-words">
                 {isAIGenerated ? 
-                  `Plan nutricional personalizado con ${nutritionMetrics.avgDailyCalories} calorías diarias` :
+                  `Plan personalizado con ${nutritionMetrics.avgDailyCalories} cal diarias` :
                   weeklyPlan.description
                 }
               </p>
               {isAIGenerated && profile?.preferences?.onboardingData && (
-                <div className="mt-3 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="mt-3 flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-4 text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
-                    <Apple className="w-4 h-4" />
-                    {profile.preferences.onboardingData.mealsPerDay} comidas/día
+                    <Apple className="w-3 h-3" />
+                    <span>{profile.preferences.onboardingData.mealsPerDay} comidas/día</span>
                   </div>
                   <div>
                     Cocina: {profile.preferences.onboardingData.cookingTime}
                   </div>
                   {profile.preferences.onboardingData.dietaryRestrictions?.length > 0 && (
-                    <div>
-                      Restricciones: {profile.preferences.onboardingData.dietaryRestrictions.slice(0, 2).join(', ')}
+                    <div className="hidden sm:block">
+                      Restricciones: {profile.preferences.onboardingData.dietaryRestrictions.slice(0, 1).join(', ')}
                     </div>
                   )}
                 </div>
               )}
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <Badge variant="warning" size="lg">
+            <div className="flex flex-col items-start xs:items-end gap-2 w-full xs:w-auto">
+              <Badge variant="warning" size="lg" className="text-center xs:text-left text-xs xs:text-sm">
                 {nutritionMetrics.avgDailyCalories} cal/día
               </Badge>
               {isAIGenerated && (
-                <Badge variant="outline" size="sm">
-                  Macros calculados por IA
+                <Badge variant="outline" size="sm" className="text-xs">
+                  IA Calculado
                 </Badge>
               )}
               
@@ -384,10 +362,10 @@ export const NutritionDashboard = () => {
                   size="sm"
                   onClick={handleRegeneratePlan}
                   disabled={isRegenerating}
-                  leftIcon={isRegenerating ? <RefreshCw className="animate-spin" size={14} /> : <RefreshCw size={14} />}
-                  className="mt-2"
+                  leftIcon={isRegenerating ? <RefreshCw className="animate-spin" size={12} /> : <RefreshCw size={12} />}
+                  className="mt-2 w-full xs:w-auto min-h-[36px] text-xs xs:text-sm px-2 xs:px-3"
                 >
-                  {isRegenerating ? 'Regenerando...' : 'Regenerar Plan'}
+                  {isRegenerating ? 'Regenerando...' : 'Regenerar'}
                 </Button>
               )}
             </div>
@@ -396,44 +374,44 @@ export const NutritionDashboard = () => {
       </Card>
 
       {/* Nutrition Goals */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 xs:gap-3 sm:gap-4">
         <Card className="text-center">
-          <CardContent className="p-6">
+          <CardContent className="p-2 xs:p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-center mb-4">
               <Target className="text-primary-600 dark:text-primary-400" size={24} />
             </div>
-            <div className="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-1">
+            <div className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-primary-600 dark:text-primary-400 mb-1">
               {nutritionMetrics.avgDailyProtein}g
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-xs xs:text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Proteína Diaria
             </div>
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-6">
+          <CardContent className="p-2 xs:p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-center mb-4">
               <Flame className="text-orange-500" size={24} />
             </div>
             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-1">
               {nutritionMetrics.avgDailyCalories}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-xs xs:text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Calorías
             </div>
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-6">
+          <CardContent className="p-2 xs:p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-center mb-4">
               <Droplets className="text-blue-500" size={24} />
             </div>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
               Post-entreno
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-xs xs:text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               Batido Obligatorio
             </div>
           </CardContent>
@@ -441,12 +419,12 @@ export const NutritionDashboard = () => {
       </div>
 
       {/* Weekly Meal Plan */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Plan Semanal de Comidas
+      <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+        <h2 className="text-base xs:text-lg sm:text-xl font-semibold text-gray-900 dark:text-white break-words">
+          Plan Semanal
         </h2>
         
-        <div className="grid gap-6">
+        <div className="grid gap-3 xs:gap-4 sm:gap-6">
           {(() => {
             if (weeklyPlan && weeklyPlan.days && Array.isArray(weeklyPlan.days)) {
               return weeklyPlan.days.map((dayPlan, index) => {

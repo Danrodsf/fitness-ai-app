@@ -43,27 +43,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     let profileLoaded = false
     let pendingCalls = new Set<string>() // Evitar llamadas duplicadas
     
-    console.log('🚀 useAuth useEffect iniciado')
 
     // 🔥 SOLUCIÓN DEFINITIVA: Cache de perfil + control de llamadas duplicadas
     const loadUserProfile = async (userId: string, source: string) => {
       // Si ya tenemos el perfil de este usuario en cache, no hacer nada
       if (profileLoaded && currentUserId === userId) {
-        console.log(`💾 Perfil en cache para ${userId}, saltando llamada desde: ${source}`)
         return profileCache
       }
       
       // Si ya hay una llamada pendiente para este usuario, no hacer otra
       if (pendingCalls.has(userId)) {
-        console.log(`⏳ Llamada ya en progreso para ${userId}, saltando ${source}`)
         return
       }
       
       pendingCalls.add(userId)
       
       try {
-        console.log(`🔍 [${source}] Cargando perfil para usuario: ${userId}`)
-        console.log(`📊 Estado actual: profileLoaded=${profileLoaded}, currentUserId=${currentUserId}`)
         
         const userProfile = await AuthService.getProfile(userId)
         if (!isMounted) return
@@ -74,7 +69,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         profileLoaded = true
         
         setProfile(userProfile)
-        console.log(`✅ [${source}] Perfil cargado y guardado en cache:`, userProfile ? 'encontrado' : 'no existe')
         
         // 🔥 FIX: Solo quitar loading DESPUÉS de que el perfil esté completamente procesado
         if (isMounted) {
@@ -116,22 +110,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Inicializar usuario actual
     const initializeAuth = async () => {
       try {
-        console.log('🔑 Inicializando autenticación...')
         const currentUser = await AuthService.getCurrentUser()
         if (!isMounted) return
         
-        console.log('👤 Usuario actual:', {
-          id: currentUser?.id || 'no autenticado',
-          email: currentUser?.email,
-          email_confirmed_at: currentUser?.email_confirmed_at,
-          isVerified: !!currentUser?.email_confirmed_at
-        })
         setUser(currentUser)
         
         if (currentUser) {
           await loadUserProfile(currentUser.id, 'INIT')
         } else {
-          console.log('❌ No hay usuario autenticado')
           // 🔥 FIX: Si no hay usuario, sí quitar loading
           if (isMounted) {
             setLoading(false)
@@ -143,35 +129,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setError(err instanceof Error ? err.message : 'Error de autenticación')
       } finally {
         // 🔥 FIX: No setear loading(false) aquí, se setea en loadUserProfile
-        console.log('✅ Inicialización completa')
       }
     }
 
     // Escuchar cambios de autenticación
-    console.log('👂 Configurando listener de auth...')
     const { data: { subscription } } = AuthService.onAuthStateChange(async (authUser) => {
       if (!isMounted) return
       
       const authUserId = authUser?.id || null
       const prevUserId = user?.id || null
       
-      console.log('🔄 AUTH CHANGE:', {
-        from: prevUserId,
-        to: authUserId,
-        isNewUser: authUserId && authUserId !== prevUserId,
-        isLogout: !authUserId && prevUserId,
-        cacheUserId: currentUserId
-      })
       
       // 🔥 SOLUCIÓN: Solo cargar perfil si no está ya en cache para este usuario
       if (authUserId && currentUserId !== authUserId) {
-        console.log('👤 USUARIO NUEVO/DIFERENTE - cargando perfil')
         setUser(authUser)
         await loadUserProfile(authUserId, 'AUTH_CHANGE')
       } 
       // Caso 2: Logout
       else if (!authUserId && prevUserId) {
-        console.log('👋 LOGOUT DETECTADO')
         setUser(null)
         setProfile(null)
         currentUserId = null
@@ -184,7 +159,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
       // Caso 3: Usuario ya en cache (ignorar completamente)
       else if (authUserId === currentUserId) {
-        console.log('💾 USUARIO YA EN CACHE, ignorando auth change')
         // Solo actualizar user state si es necesario
         if (user?.id !== authUserId) {
           setUser(authUser)
@@ -202,7 +176,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }, 100)
 
     return () => {
-      console.log('🧹 Cleanup useAuth')
       isMounted = false
       subscription.unsubscribe()
     }
@@ -223,18 +196,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const register = async (credentials: RegisterCredentials) => {
     try {
-      console.log('🔄 useAuth.register iniciado', { email: credentials.email })
       setLoading(true)
       setError(null)
       
       if (credentials.password !== credentials.confirmPassword) {
-        console.log('❌ Las contraseñas no coinciden')
         throw new Error('Las contraseñas no coinciden')
       }
       
-      console.log('📡 Llamando a AuthService.register...')
       const result = await AuthService.register(credentials)
-      console.log('✅ AuthService.register completado:', result)
     } catch (err) {
       console.error('❌ Error en useAuth.register:', err)
       setError(err instanceof Error ? err.message : 'Error en el registro')
@@ -281,10 +250,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setLoading(true)
       setError(null)
-      console.log('🔄 Actualizando perfil...')
       const updatedProfile = await AuthService.updateProfile(user.id, updateData)
       setProfile(updatedProfile)
-      console.log('✅ Perfil actualizado exitosamente')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error actualizando perfil')
       throw err

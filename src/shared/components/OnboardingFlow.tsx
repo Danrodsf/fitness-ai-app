@@ -99,37 +99,30 @@ export const OnboardingFlow = () => {
     setIsLoading(true)
     
     try {
-      console.log('🤖 Iniciando generación de planes con IA...')
       
       // 1. GENERAR PLANES CON IA PRIMERO
       const aiResponse = await AIService.generatePlans(formData)
-      console.log('✅ Planes generados:', aiResponse)
 
       if (!user) throw new Error('Usuario no autenticado')
 
       // 2. GUARDAR PLANES EN BASE DE DATOS INMEDIATAMENTE
-      console.log('💾 Guardando planes en base de datos...')
       
       // Guardar programa de entrenamiento
       if (aiResponse.trainingPlan) {
         await TrainingService.saveTrainingProgram(user.id, aiResponse.trainingPlan)
-        console.log('✅ Programa de entrenamiento guardado')
       }
       
       // Guardar objetivos nutricionales
       if (aiResponse.nutritionPlan?.goals) {
         await NutritionService.saveNutritionGoals(user.id, aiResponse.nutritionPlan.goals)
-        console.log('✅ Objetivos nutricionales guardados')
       }
       
       // Guardar plan de comidas semanal
       if (aiResponse.nutritionPlan?.weeklyPlan) {
         await NutritionService.saveWeeklyMealPlan(user.id, aiResponse.nutritionPlan.weeklyPlan)
-        console.log('✅ Plan de comidas guardado')
       }
 
       // 3. ACTUALIZAR PERFIL CON DATOS DEL ONBOARDING
-      console.log('💾 Actualizando perfil del usuario...')
       
       // Simplificar onboardingData para evitar problemas de serialización
       const simplifiedOnboardingData = {
@@ -163,7 +156,6 @@ export const OnboardingFlow = () => {
         }
       })
       
-      console.log('✅ Perfil actualizado. Onboarding completado.')
       
     } catch (error) {
       console.error('Error generating AI plans:', error)
@@ -571,13 +563,13 @@ export const OnboardingFlow = () => {
           </div>
         )}
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6 sm:mb-8">
             <div className="flex items-center justify-center w-12 h-12 bg-primary-600 rounded-xl mx-auto mb-4">
               {currentStepData.icon}
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
               {currentStepData.title}
             </h1>
             <div className="flex items-center justify-center space-x-2">
@@ -601,12 +593,12 @@ export const OnboardingFlow = () => {
           </div>
 
           {/* Navigation */}
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0">
             <Button
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 0 || isLoading}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-h-[48px] order-2 sm:order-1"
             >
               <ChevronLeft className="w-4 h-4" />
               Anterior
@@ -616,7 +608,7 @@ export const OnboardingFlow = () => {
               <Button
                 onClick={generateAIPlans}
                 disabled={isLoading || !formData.name}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 min-h-[48px] order-1 sm:order-2"
               >
                 {isLoading ? (
                   <>
@@ -634,7 +626,7 @@ export const OnboardingFlow = () => {
               <Button
                 onClick={nextStep}
                 disabled={isLoading}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 min-h-[48px] order-1 sm:order-2"
               >
                 Siguiente
                 <ChevronRight className="w-4 h-4" />

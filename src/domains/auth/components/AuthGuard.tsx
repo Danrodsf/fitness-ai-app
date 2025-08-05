@@ -12,15 +12,6 @@ interface AuthGuardProps {
 export const AuthGuard = ({ children }: AuthGuardProps) => {
   const { user, loading, logout } = useAuth()
 
-  // 🔥 DEBUG: Log del estado de AuthGuard
-  React.useEffect(() => {
-    console.log('🛡️ AuthGuard state:', {
-      hasUser: !!user,
-      userEmail: user?.email,
-      isVerified: !!user?.email_confirmed_at,
-      loading
-    })
-  }, [user, loading])
 
   if (loading) {
     return (
@@ -71,11 +62,6 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
 
   // 🔥 NUEVO: Si el usuario existe pero no ha verificado su email
   if (user && !user.email_confirmed_at) {
-    console.log('🔍 Usuario no verificado:', { 
-      email: user.email, 
-      confirmed: user.email_confirmed_at,
-      userObject: user
-    })
     
     return (
       <EmailVerificationScreen 
@@ -85,10 +71,6 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     )
   }
 
-  console.log('✅ AuthGuard: Usuario verificado, pasando al App', {
-    email: user?.email,
-    confirmed: user?.email_confirmed_at
-  })
 
   return <>{children}</>
 }

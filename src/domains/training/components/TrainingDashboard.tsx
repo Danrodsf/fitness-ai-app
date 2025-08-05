@@ -45,7 +45,6 @@ export const TrainingDashboard = () => {
 
     setIsRegenerating(true)
     try {
-      console.log('🔄 Regenerando SOLO plan de entrenamiento...')
       
       // Regenerar SOLO plan de entrenamiento con IA
       const newTrainingPlan = await AIService.regenerateTrainingPlan(profile.preferences.onboardingData)
@@ -53,7 +52,6 @@ export const TrainingDashboard = () => {
       // Guardar SOLO el nuevo plan de entrenamiento en Supabase
       if (user.id) {
         await TrainingService.saveTrainingProgram(user.id, newTrainingPlan)
-        console.log('✅ Nuevo plan de entrenamiento guardado en BD')
       }
       
       // Actualizar perfil manteniendo el plan nutricional existente
@@ -110,47 +108,47 @@ export const TrainingDashboard = () => {
   const isAIGenerated = !!aiTrainingPlan
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Program Header */}
       <Card variant="glass">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <CardTitle className="text-2xl text-primary-600 dark:text-primary-400">
+        <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col xs:flex-row xs:items-start xs:justify-between gap-3 xs:gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-3 mb-2">
+                <CardTitle className="text-base xs:text-lg sm:text-xl md:text-2xl text-primary-600 dark:text-primary-400 break-words">
                   {currentProgram.name}
                 </CardTitle>
                 {isAIGenerated && (
-                  <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-full">
-                    <Sparkles className="w-4 h-4" />
-                    Generado por IA
+                  <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-full">
+                    <Sparkles className="w-3 h-3" />
+                    IA
                   </div>
                 )}
               </div>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-xs xs:text-sm sm:text-base text-gray-600 dark:text-gray-300 break-words">
                 {currentProgram.description}
               </p>
               {isAIGenerated && profile?.preferences?.onboardingData && (
-                <div className="mt-3 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="mt-2 xs:mt-3 flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-4 text-xs xs:text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1">
-                    <Target className="w-4 h-4" />
-                    Objetivo: {profile.preferences.onboardingData.primaryGoal.replace('_', ' ')}
+                    <Target className="w-3 h-3" />
+                    <span>Objetivo: {profile.preferences.onboardingData.primaryGoal.replace('_', ' ')}</span>
                   </div>
                   <div>
                     Nivel: {profile.preferences.onboardingData.experienceLevel}
                   </div>
-                  <div>
+                  <div className="hidden sm:block">
                     {profile.preferences.onboardingData.timePerWorkout} min/sesión
                   </div>
                 </div>
               )}
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <Badge variant="primary" size="lg">
+            <div className="flex flex-col items-start xs:items-end gap-2 w-full xs:w-auto">
+              <Badge variant="primary" size="lg" className="text-xs xs:text-sm">
                 {currentProgram.frequency} días/semana
               </Badge>
               {isAIGenerated && (
-                <Badge variant="outline" size="sm">
+                <Badge variant="outline" size="sm" className="text-xs">
                   Plan personalizado
                 </Badge>
               )}
@@ -162,10 +160,10 @@ export const TrainingDashboard = () => {
                   size="sm"
                   onClick={handleRegeneratePlan}
                   disabled={isRegenerating}
-                  leftIcon={isRegenerating ? <RefreshCw className="animate-spin" size={14} /> : <RefreshCw size={14} />}
-                  className="mt-2"
+                  leftIcon={isRegenerating ? <RefreshCw className="animate-spin" size={12} /> : <RefreshCw size={12} />}
+                  className="mt-2 w-full xs:w-auto text-xs xs:text-sm px-2 xs:px-3"
                 >
-                  {isRegenerating ? 'Regenerando...' : 'Regenerar Plan'}
+                  {isRegenerating ? 'Regenerando...' : 'Regenerar'}
                 </Button>
               )}
             </div>
@@ -176,12 +174,12 @@ export const TrainingDashboard = () => {
 
 
       {/* Workout Days */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+      <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+        <h2 className="text-base xs:text-lg sm:text-xl font-semibold text-gray-900 dark:text-white break-words">
           Días de Entrenamiento
         </h2>
         
-        <div className="grid gap-6">
+        <div className="grid gap-3 xs:gap-4 sm:gap-6">
           {currentProgram.workoutDays && Array.isArray(currentProgram.workoutDays) ? (
             currentProgram.workoutDays.map((workoutDay) => {
               // 🔥 SOLUCION: Solo hay sesión activa si existe currentSession Y coinciden los IDs
@@ -190,13 +188,6 @@ export const TrainingDashboard = () => {
               const currentSessionWorkoutDayId = state.training.currentSession?.workoutDayId
               const isCurrentSession = hasCurrentSession && (currentSessionWorkoutDayId === workoutDayId)
               
-              console.log(`🔍 DASHBOARD: ${workoutDay.name}`, {
-                workoutDayId,
-                currentSessionWorkoutDayId,
-                hasCurrentSession,
-                isCurrentSession,
-                idsMatch: currentSessionWorkoutDayId === workoutDayId
-              })
               
               return (
                 <WorkoutDayCard
@@ -217,38 +208,38 @@ export const TrainingDashboard = () => {
 
       {/* Program Stats */}
       <Card>
-        <CardHeader>
-          <CardTitle>Estadísticas del Programa</CardTitle>
+        <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-6">
+          <CardTitle className="text-sm xs:text-base sm:text-lg">Estadísticas del Programa</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="p-2 xs:p-3 sm:p-4 md:p-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-3 sm:gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              <div className="text-sm xs:text-base sm:text-lg md:text-xl font-bold text-primary-600 dark:text-primary-400">
                 {currentProgram.duration}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Semanas</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Semanas</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              <div className="text-sm xs:text-base sm:text-lg md:text-xl font-bold text-primary-600 dark:text-primary-400">
                 {currentProgram.workoutDays && Array.isArray(currentProgram.workoutDays) ? currentProgram.workoutDays.length : 0}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Días</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Días</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              <div className="text-sm xs:text-base sm:text-lg md:text-xl font-bold text-primary-600 dark:text-primary-400">
                 {currentProgram.workoutDays && Array.isArray(currentProgram.workoutDays) 
                   ? currentProgram.workoutDays.reduce((total, day) => total + (day.exercises?.length || 0), 0)
                   : 0}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Ejercicios</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Ejercicios</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+              <div className="text-sm xs:text-base sm:text-lg md:text-xl font-bold text-primary-600 dark:text-primary-400">
                 {currentProgram.workoutDays && Array.isArray(currentProgram.workoutDays) && currentProgram.workoutDays.length > 0
                   ? Math.round(currentProgram.workoutDays.reduce((total, day) => total + (day.estimatedDuration || 0), 0) / currentProgram.workoutDays.length)
                   : 0}
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Min promedio</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Min promedio</div>
             </div>
           </div>
         </CardContent>

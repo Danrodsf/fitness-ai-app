@@ -9,7 +9,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export const Card = ({ 
   children, 
   variant = 'default', 
-  padding = 'md',
+  padding = 'sm',
   className, 
   ...props 
 }: CardProps) => {
@@ -23,7 +23,7 @@ export const Card = ({
   
   const paddings = {
     none: '',
-    sm: 'p-4',
+    sm: 'p-2',
     md: 'p-6',
     lg: 'p-8',
   }
@@ -46,7 +46,7 @@ export const Card = ({
 interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {}
 
 export const CardHeader = ({ children, className, ...props }: CardHeaderProps) => (
-  <div className={clsx('mb-4', className)} {...props}>
+  <div className={clsx('mb-2', className)} {...props}>
     {children}
   </div>
 )

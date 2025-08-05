@@ -150,12 +150,6 @@ function calculateProgressStats(weightHistory: any[], _measurements: any[]) {
   const currentStreak = calculateCurrentStreak(sortedWeights)
   const longestStreak = calculateLongestStreak(sortedWeights)
   
-  console.log('📊 Calculando estadísticas de peso:', {
-    totalEntries: weightHistory.length,
-    currentStreak,
-    longestStreak,
-    dates: sortedWeights.map(w => w.date)
-  })
 
   // Calculate average weekly change
   const totalWeeks = Math.max(1, Math.floor(weightHistory.length / 7))
@@ -179,10 +173,6 @@ function calculateCurrentStreak(sortedWeights: any[]): number {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
 
-  console.log('🔄 Calculando racha actual:', {
-    totalEntries: recentFirst.length,
-    recentDates: recentFirst.slice(0, 5).map(w => w.date)
-  })
 
   let currentStreak = 0
   const today = new Date()
@@ -216,7 +206,6 @@ function calculateCurrentStreak(sortedWeights: any[]): number {
     }
   }
 
-  console.log('✅ Racha actual calculada:', currentStreak)
   return currentStreak
 }
 

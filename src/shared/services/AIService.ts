@@ -93,7 +93,6 @@ export class AIService {
 
   // 🔄 REGENERAR SOLO PLAN DE ENTRENAMIENTO
   static async regenerateTrainingPlan(data: OnboardingData): Promise<TrainingProgram> {
-    console.log('🔄 Regenerando SOLO plan de entrenamiento...')
     
     if (!this.AI_ENDPOINT || !this.AI_API_KEY) {
       throw new Error('IA no configurada - no se puede regenerar plan')
@@ -135,7 +134,6 @@ export class AIService {
       // 🔥 ARREGLADO: Limpiar markdown code blocks si existen
       if (aiContent.includes('```json')) {
         aiContent = aiContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '')
-        console.log('🧹 JSON limpiado de markdown en regenerateTrainingPlan')
       }
       
       const parsedResponse = JSON.parse(aiContent)
@@ -181,8 +179,6 @@ export class AIService {
 
   // 🔄 REGENERAR SOLO PLAN NUTRICIONAL
   static async regenerateNutritionPlan(data: OnboardingData): Promise<{ goals: NutritionGoals; weeklyPlan: WeeklyMealPlan }> {
-    console.log('🔄 Regenerando SOLO plan nutricional...')
-    console.log('📋 Datos de onboarding:', data)
     
     if (!this.AI_ENDPOINT || !this.AI_API_KEY) {
       throw new Error('IA no configurada - no se puede regenerar plan')
@@ -190,7 +186,6 @@ export class AIService {
 
     try {
       const prompt = this.generateNutritionOnlyPrompt(data)
-      console.log('📝 Prompt generado:', prompt.substring(0, 500) + '...')
       
       const response = await fetch(this.AI_ENDPOINT, {
         method: 'POST',
@@ -221,16 +216,13 @@ export class AIService {
 
       const result = await response.json()
       let aiContent = result.choices[0].message.content
-      console.log('🤖 Respuesta de IA:', aiContent.substring(0, 500) + '...')
       
       // 🔥 ARREGLADO: Limpiar markdown code blocks si existen
       if (aiContent.includes('```json')) {
         aiContent = aiContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '')
-        console.log('🧹 JSON limpiado de markdown')
       }
       
       const parsedResponse = JSON.parse(aiContent)
-      console.log('📊 Plan parseado:', parsedResponse)
       
       if (!parsedResponse.nutritionPlan) {
         throw new Error('Invalid AI response - missing nutrition plan')
@@ -243,7 +235,6 @@ export class AIService {
       }
 
       if (nutritionPlan.weeklyPlan.days.length !== 7) {
-        console.warn(`⚠️ Plan tiene ${nutritionPlan.weeklyPlan.days.length} días en lugar de 7`)
       }
 
       // Validar que cada día tenga la estructura correcta
@@ -253,7 +244,6 @@ export class AIService {
         }
       })
 
-      console.log('✅ Plan nutricional validado correctamente')
       return nutritionPlan
     } catch (error) {
       console.error('❌ Error regenerating nutrition plan:', error)
@@ -270,11 +260,9 @@ export class AIService {
     if (!forceNewCall) {
       const cachedResponse = this.loadFromCache(cacheKey)
       if (cachedResponse) {
-        console.log('🔄 Usando respuesta de IA desde cache')
         return cachedResponse
       }
     } else {
-      console.log('🔄 Forzando nueva llamada a OpenAI (ignorando caché)')
     }
 
     // Si no hay configuración de IA, devolver plan por defecto
@@ -283,7 +271,6 @@ export class AIService {
     }
 
     try {
-      console.log('🤖 Llamando a OpenAI...')
       const prompt = this.generatePrompt(data)
       
       const response = await fetch(this.AI_ENDPOINT, {
@@ -319,7 +306,6 @@ export class AIService {
       // 🔥 ARREGLADO: Limpiar markdown code blocks si existen
       if (aiContent.includes('```json')) {
         aiContent = aiContent.replace(/```json\s*/g, '').replace(/```\s*$/g, '')
-        console.log('🧹 JSON limpiado de markdown en generatePlans')
       }
 
       // Parsear la respuesta JSON
@@ -338,9 +324,7 @@ export class AIService {
       // Guardar en cache la respuesta exitosa (solo si no es forzada)
       if (!forceNewCall) {
         this.saveToCache(cacheKey, aiResponse)
-        console.log('💾 Respuesta de IA guardada en cache')
       } else {
-        console.log('🔄 Respuesta de IA NO guardada en cache (llamada forzada)')
       }
 
       return aiResponse

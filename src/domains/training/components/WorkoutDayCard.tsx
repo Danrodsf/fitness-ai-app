@@ -19,11 +19,6 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
   const [isExpanded, setIsExpanded] = useState(false)
 
   const handleStartWorkout = () => {
-    console.log('🔥 INICIO ENTRENAMIENTO:', {
-      workoutDayId: workoutDay.id,
-      workoutDayName: workoutDay.name,
-      workoutDay
-    })
     
     dispatch({
       type: 'WORKOUT_START',
@@ -44,7 +39,6 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
     try {
       // 🔥 IMPLEMENTADO: Guardar en BD cuando se completa el día entero
       if (state.training.currentSession && state.training.currentSession.exercises.length > 0) {
-        console.log('💾 Guardando sesión completa en BD...')
         
         dispatch({
           type: 'NOTIFICATION_ADD',
@@ -62,7 +56,6 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
             state.training.currentSession
           )
           
-          console.log('✅ Sesión guardada exitosamente:', result)
         }
       }
 
@@ -105,58 +98,66 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
     <Card 
       variant={isCurrentSession ? 'glass' : 'default'} 
       className={clsx(
-        'transition-all duration-300',
+        'transition-all duration-300 w-full max-w-full overflow-hidden',
         isCurrentSession && 'ring-2 ring-primary-500 shadow-glow',
         workoutDay.completed && 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800'
       )}
     >
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <Calendar className="text-primary-600 dark:text-primary-400" size={20} />
-              <CardTitle className="text-lg">
-                {workoutDay.name}
-              </CardTitle>
-              {workoutDay.completed && (
-                <Badge variant="success" size="sm">
-                  <CheckCircle size={14} className="mr-1" />
-                  Completado
-                </Badge>
-              )}
-              {isCurrentSession && (
-                <Badge variant="primary" size="sm">
-                  <Play size={14} className="mr-1" />
-                  En progreso
-                </Badge>
-              )}
+      <CardHeader className="p-3 sm:p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="space-y-2 flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="text-primary-600 dark:text-primary-400" size={18} />
+                <CardTitle className="text-base sm:text-lg break-words">
+                  {workoutDay.name}
+                </CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                {workoutDay.completed && (
+                  <Badge variant="success" size="sm">
+                    <CheckCircle size={14} className="mr-1" />
+                    Completado
+                  </Badge>
+                )}
+                {isCurrentSession && (
+                  <Badge variant="primary" size="sm">
+                    <Play size={14} className="mr-1" />
+                    En progreso
+                  </Badge>
+                )}
+              </div>
             </div>
             
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-gray-600 dark:text-gray-300 break-words">
               {workoutDay.description}
             </p>
             
-            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <Clock size={16} />
-                {workoutDay.estimatedDuration} min
+                <span>{workoutDay.estimatedDuration} min</span>
               </div>
               <div className="flex items-center gap-1">
                 <List size={16} />
-                {totalExercises} ejercicios
+                <span>{totalExercises} ejercicios</span>
               </div>
               {progressPercentage > 0 && (
                 <div className="flex items-center gap-1">
                   <CheckCircle size={16} />
-                  {completedExercises}/{totalExercises} completados
+                  <span>{completedExercises}/{totalExercises} completados</span>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col gap-2 w-full sm:w-auto flex-shrink-0">
             {!isCurrentSession && !workoutDay.completed && (
-              <Button onClick={handleStartWorkout} leftIcon={<Play size={16} />}>
+              <Button 
+                onClick={handleStartWorkout} 
+                leftIcon={<Play size={16} />}
+                className="w-full sm:w-auto min-h-[44px]"
+              >
                 Comenzar
               </Button>
             )}
@@ -166,6 +167,7 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
                 variant="success" 
                 onClick={handleCompleteWorkout}
                 leftIcon={<CheckCircle size={16} />}
+                className="w-full sm:w-auto min-h-[44px]"
               >
                 Completar
               </Button>
@@ -175,8 +177,9 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
               variant="ghost" 
               size="sm" 
               onClick={() => setIsExpanded(!isExpanded)}
+              className="w-full sm:w-auto"
             >
-              {isExpanded ? 'Contraer' : 'Ver detalles'}
+              {isExpanded ? 'Ocultar detalles' : 'Ver detalles'}
             </Button>
           </div>
         </div>
@@ -199,52 +202,55 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="animate-slide-down">
+        <CardContent className="animate-slide-down p-4 sm:p-6 w-full max-w-full">
           {/* Warm up */}
-          <div className="mb-6">
+          <div className="mb-6 w-full">
             <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-3">
               <Flame className="text-orange-500" size={18} />
-              Calentamiento (10 min)
+              <span>Calentamiento (10 min)</span>
             </h4>
-            <ul className="space-y-1 text-gray-600 dark:text-gray-300">
+            <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300 w-full">
               {workoutDay.warmUp?.map((warmUpItem, index) => (
-                <li key={index} className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-orange-400 rounded-full flex-shrink-0" />
-                  {warmUpItem}
+                <li key={index} className="flex items-start gap-2 w-full">
+                  <div className="w-2 h-2 bg-orange-400 rounded-full flex-shrink-0 mt-1" />
+                  <span className="break-words leading-relaxed flex-1">{warmUpItem}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Exercises */}
-          <div className="space-y-4">
+          <div className="space-y-4 w-full">
             <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
               <List className="text-primary-600 dark:text-primary-400" size={18} />
-              Ejercicios Principales
+              <span>Ejercicios Principales</span>
             </h4>
             
-            {exercisesToUse.map((workoutExercise, index) => (
-              <ExerciseCard
-                key={workoutExercise.exercise?.id || `exercise-${index}`}
-                workoutExercise={workoutExercise}
-                exerciseNumber={index + 1}
-                isActive={isCurrentSession}
-              />
-            ))}
+            <div className="space-y-4 w-full">
+              {exercisesToUse.map((workoutExercise, index) => (
+                <div key={workoutExercise.exercise?.id || `exercise-${index}`} className="w-full">
+                  <ExerciseCard
+                    workoutExercise={workoutExercise}
+                    exerciseNumber={index + 1}
+                    isActive={isCurrentSession}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Rest info */}
-          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg w-full">
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
               <Clock size={16} />
-              <span className="font-medium">Descanso entre series: 90-120 segundos</span>
+              <span className="font-medium text-sm break-words">Descanso entre series: 90-120 segundos</span>
             </div>
           </div>
 
           {/* Special notes */}
           {workoutDay.notes && (
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-blue-800 dark:text-blue-200">
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 w-full">
+              <p className="text-blue-800 dark:text-blue-200 text-sm break-words leading-relaxed">
                 <strong>Nota:</strong> {workoutDay.notes}
               </p>
             </div>

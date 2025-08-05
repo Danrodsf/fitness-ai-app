@@ -50,7 +50,6 @@ export class TrainingService {
         return
       }
       
-      console.log('✅ Programa de entrenamiento guardado en perfil de usuario')
     } catch (error) {
       console.warn('⚠️ Error guardando programa de entrenamiento:', error)
       // No fallar, solo log el error
@@ -69,7 +68,6 @@ export class TrainingService {
         .single()
       
       if (error || !data?.preferences?.aiPlans?.trainingPlan) {
-        console.log('📊 No hay programa de entrenamiento guardado')
         return null
       }
       
@@ -95,12 +93,6 @@ export class TrainingService {
     const client = this.ensureSupabase()
     
     try {
-      console.log('💾 Guardando sesión completa en BD (OPTIMIZADO):', {
-        userId,
-        sessionId: sessionData.id,
-        exercises: sessionData.exercises.length,
-        totalSets: sessionData.exercises.reduce((total, ex) => total + ex.actualSets.length, 0)
-      })
 
       // 🔥 NUEVO: Preparar datos en formato JSON optimizado
       const exercisesJson = sessionData.exercises.map(exercise => ({
@@ -135,11 +127,6 @@ export class TrainingService {
         }
       }
 
-      console.log('📊 Datos JSON preparados:', {
-        exercises: exercisesJson.length,
-        totalSets,
-        totalVolume
-      })
 
       // 1. Crear la sesión principal con datos JSON
       const { data: workoutSession, error: sessionError } = await client
@@ -166,8 +153,6 @@ export class TrainingService {
         throw sessionError
       }
 
-      console.log('✅ Workout session optimizada creada:', workoutSession.id)
-      console.log('📊 JSON guardado correctamente con', exercisesJson.length, 'ejercicios')
 
       return {
         success: true,
@@ -250,7 +235,6 @@ export class TrainingService {
   static async getLastExercisePerformance(userId: string, exerciseId: string) {
     const client = this.ensureSupabase()
     
-    console.log(`🔍 Buscando historial para ejercicio: ${exerciseId} (user: ${userId})`)
     
     try {
       // 🔥 NUEVO: Usar función SQL optimizada para JSON
@@ -267,7 +251,6 @@ export class TrainingService {
       }
 
       if (!jsonData || jsonData.length === 0) {
-        console.log('📊 No hay historial previo para este ejercicio (JSON)')
         return {
           lastSession: null,
           maxWeight: 0,
@@ -280,11 +263,6 @@ export class TrainingService {
       const exerciseData = lastSession.exercise_data
       const sets = exerciseData.sets || []
 
-      console.log('📊 Historial encontrado:', {
-        fecha: lastSession.session_date,
-        sets: sets.length,
-        ejercicio: exerciseData.exercise_name
-      })
 
       // Calcular estadísticas
       const maxWeight = Math.max(...sets.map((s: any) => s.weight || 0))
@@ -323,7 +301,6 @@ export class TrainingService {
   private static async getLastExercisePerformanceManual(userId: string, exerciseId: string) {
     const client = this.ensureSupabase()
     
-    console.log(`🔍 Búsqueda manual de historial para: ${exerciseId}`)
     
     try {
       const { data: sessions, error } = await client
@@ -361,7 +338,6 @@ export class TrainingService {
       }
 
       if (!lastSession) {
-        console.log('📊 No hay historial previo para este ejercicio (manual)')
         return {
           lastSession: null,
           maxWeight: 0,
@@ -375,12 +351,6 @@ export class TrainingService {
       const totalReps = allSets.reduce((sum, s) => sum + s.reps, 0)
       const recommendedWeight = maxWeight > 20 ? maxWeight + 2.5 : maxWeight + 1
 
-      console.log('📊 Historial encontrado (manual):', {
-        fecha: lastSession.date,
-        sets: lastSession.sets.length,
-        maxWeight,
-        totalReps
-      })
 
       return {
         lastSession,
@@ -403,7 +373,6 @@ export class TrainingService {
   // 🔥 NUEVO: Función para debuggear qué ejercicios existen en la BD
   static async getAvailableExercises(userId: string) {
     try {
-      console.log('🔍 DEBUG: Buscando ejercicios disponibles en BD...')
       
       const supabaseClient = this.ensureSupabase()
       const { data: sessions, error } = await supabaseClient
@@ -439,8 +408,6 @@ export class TrainingService {
         }
       })
 
-      console.log('🔍 DEBUG: Ejercicios encontrados por ID:', Array.from(exerciseIds))
-      console.log('🔍 DEBUG: Ejercicios encontrados por nombre:', Array.from(exerciseNames))
       
       return {
         ids: Array.from(exerciseIds),
@@ -461,7 +428,6 @@ export class TrainingService {
     }
 
     try {
-      console.log(`📊 Obteniendo progreso de fuerza para ${exerciseId} (${weeksBack} semanas)`)
       
       // 1. Obtener todas las sesiones del usuario de las últimas semanas
       const cutoffDate = new Date()
@@ -482,11 +448,9 @@ export class TrainingService {
       }
 
       if (!sessions || sessions.length === 0) {
-        console.log('📊 No hay sesiones de entrenamiento en las últimas semanas')
         return []
       }
 
-      console.log(`📊 Procesando ${sessions.length} sesiones para progreso de ${exerciseId}`)
 
       // 2. Extraer datos del ejercicio específico de cada sesión
       const exerciseData: Array<{
@@ -500,16 +464,9 @@ export class TrainingService {
         try {
           const sessionData = session.session_data
           if (!sessionData || !sessionData.exercises) {
-            console.log(`⚠️ Sesión ${session.id} sin datos de ejercicios`)
             continue
           }
 
-          console.log(`🔍 Sesión ${session.id}: ${sessionData.exercises.length} ejercicios`)
-          
-          // DEBUG: Mostrar qué ejercicios hay en esta sesión
-          sessionData.exercises.forEach((ex: any, idx: number) => {
-            console.log(`  Ejercicio ${idx}: id="${ex.exercise_id}", exercise.id="${ex.exercise?.id}", name="${ex.exercise?.name}"`)
-          })
 
           // Buscar el ejercicio específico en la sesión
           const exerciseInSession = sessionData.exercises.find((ex: any) => 
@@ -518,21 +475,9 @@ export class TrainingService {
             (ex.exercise?.name && this.normalizeExerciseName(ex.exercise.name) === exerciseId)
           )
           
-          console.log(`🔍 Ejercicio "${exerciseId}" ${exerciseInSession ? 'ENCONTRADO' : 'NO ENCONTRADO'} en sesión ${session.id}`)
-
           if (!exerciseInSession) {
             continue
           }
-
-          // 🔍 DEBUG: Ver estructura completa del ejercicio encontrado
-          console.log(`🔍 DEBUG: Estructura del ejercicio encontrado:`, {
-            exercise_id: exerciseInSession.exercise_id,
-            exercise: exerciseInSession.exercise,
-            actualSets: exerciseInSession.actualSets,
-            sets: exerciseInSession.sets,
-            completedSets: exerciseInSession.completedSets,
-            allKeys: Object.keys(exerciseInSession)
-          })
 
           // Buscar sets en diferentes campos posibles
           let sets = exerciseInSession.actualSets || 
@@ -541,11 +486,9 @@ export class TrainingService {
                     exerciseInSession.recorded_sets || []
 
           if (!sets || sets.length === 0) {
-            console.log(`⚠️ No se encontraron sets para ${exerciseId} en sesión ${session.id}`)
             continue
           }
 
-          console.log(`✅ ${exerciseId}: ${sets.length} sets encontrados en sesión ${session.id}`)
 
           const maxWeight = Math.max(...sets.map((s: any) => s.weight || 0))
           const totalReps = sets.reduce((sum: number, s: any) => sum + (s.reps || 0), 0)
@@ -564,11 +507,9 @@ export class TrainingService {
       }
 
       if (exerciseData.length === 0) {
-        console.log(`📊 No se encontraron datos para ${exerciseId}`)
         return []
       }
 
-      console.log(`📊 Datos extraídos para ${exerciseId}:`, exerciseData.length, 'sesiones')
 
       // 3. Ordenar por fecha y generar datos para gráfico de líneas
       const chartData = exerciseData
@@ -595,7 +536,6 @@ export class TrainingService {
           }
         })
 
-      console.log(`✅ Progreso generado para ${exerciseId}:`, chartData.length, 'semanas')
       return chartData
 
     } catch (error) {

@@ -30,7 +30,7 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   ]
 
   return (
-    <nav className="flex flex-col sm:flex-row gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+    <nav className="flex flex-col xs:flex-row gap-1 xs:gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
       {tabs.map(({ id, label, icon: Icon }) => (
         <Button
           key={id}
@@ -38,14 +38,14 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
           size="md"
           onClick={() => onTabChange(id)}
           className={clsx(
-            'flex-1 justify-center gap-2 transition-all duration-200',
+            'flex-1 justify-center gap-1 xs:gap-2 transition-all duration-200 min-h-[44px] xs:min-h-[48px] sm:min-h-[44px]',
             activeTab === id 
               ? 'shadow-md transform scale-[1.02]' 
               : 'hover:bg-white/50 dark:hover:bg-gray-700/50'
           )}
           leftIcon={<Icon size={18} />}
         >
-          <span className="hidden sm:inline">{label}</span>
+          <span className="text-xs xs:text-xs sm:text-sm">{label}</span>
         </Button>
       ))}
     </nav>

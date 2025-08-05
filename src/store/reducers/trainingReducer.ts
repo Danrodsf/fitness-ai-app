@@ -14,13 +14,8 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
       }
 
     case 'WORKOUT_START':
-      console.log('🏋️ REDUCER: WORKOUT_START recibido:', {
-        hasCurrentProgram: !!state.currentProgram,
-        workoutDayId: action.payload.workoutDayId
-      })
 
       if (!state.currentProgram) {
-        console.log('❌ REDUCER: No hay currentProgram disponible')
         return state
       }
       
@@ -29,19 +24,9 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
       )
       
       if (!workoutDay) {
-        console.log('❌ REDUCER: WorkoutDay no encontrado:', action.payload.workoutDayId)
         return state
       }
 
-      console.log('📋 REDUCER: Creando sesión con ejercicios:', {
-        workoutDayName: workoutDay.name,
-        exercisesCount: workoutDay.exercises.length,
-        exercises: workoutDay.exercises.map(ex => ({
-          id: ex.exercise?.id || 'NO_ID',
-          name: ex.exercise?.name || 'NO_NAME',
-          structure: Object.keys(ex)
-        }))
-      })
 
       const newSession = {
         id: `session-${Date.now()}`,
@@ -56,7 +41,6 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
               .replace(/\s+/g, '-')
               .replace(/[^\w-]/g, '')
               .replace(/--+/g, '-')
-            console.log('🆔 REDUCER: ID generado para ejercicio:', exercise.id)
           }
           
           return {
@@ -71,14 +55,6 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
         updatedAt: new Date().toISOString(),
       }
 
-      console.log('✅ REDUCER: Nueva sesión creada:', {
-        sessionId: newSession.id,
-        exercisesInSession: newSession.exercises.map(ex => ({
-          id: ex.exercise?.id || 'NO_ID',
-          name: ex.exercise?.name || 'NO_NAME',
-          actualSets: ex.actualSets.length
-        }))
-      })
 
       return {
         ...state,
@@ -87,29 +63,15 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
       }
 
     case 'EXERCISE_SET_UPDATE':
-      console.log('🔄 REDUCER: EXERCISE_SET_UPDATE recibido:', {
-        hasCurrentSession: !!state.currentSession,
-        payload: action.payload
-      })
 
       if (!state.currentSession) {
-        console.log('❌ REDUCER: No hay currentSession activa')
         return state
       }
 
       const updatedExercises = state.currentSession.exercises.map(exercise => {
         if (exercise.exercise.id === action.payload.exerciseId) {
-          console.log('✅ REDUCER: Ejercicio encontrado, actualizando sets:', {
-            exerciseId: exercise.exercise.id,
-            currentSets: exercise.actualSets.length,
-            newSetIndex: action.payload.setIndex,
-            newSet: action.payload.set
-          })
-          
           const updatedSets = [...exercise.actualSets]
           updatedSets[action.payload.setIndex] = action.payload.set
-          
-          console.log('📝 REDUCER: Sets actualizados:', updatedSets)
           
           return {
             ...exercise,
@@ -128,9 +90,6 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
         },
       }
 
-      console.log('🎯 REDUCER: Nuevo estado creado:', {
-        exerciseWithSets: newState.currentSession.exercises.find(ex => ex.exercise.id === action.payload.exerciseId)?.actualSets
-      })
 
       return newState
 

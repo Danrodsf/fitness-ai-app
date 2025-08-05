@@ -19,22 +19,18 @@ export const useProgressData = () => {
 
       // Si ya cargamos datos para este usuario, no hacer nada
       if (loadingState.current.hasLoadedForUser === user.id) {
-        console.log('📊 useProgressData: Datos ya cargados para usuario', user.id)
         return
       }
 
       // Marcar usuario como procesado INMEDIATAMENTE
       loadingState.current.hasLoadedForUser = user.id
-      console.log('🚀 useProgressData: Iniciando carga completa para usuario', user.id)
 
       try {
         // Cargar weight history
         if (!loadingState.current.weightHistory) {
           loadingState.current.weightHistory = true
-          console.log('📊 useProgressData: Cargando weight history...')
           
           const weightHistory = await ProgressService.getWeightHistory(user.id)
-          console.log(`✅ useProgressData: Weight history cargado (${weightHistory.length} registros)`)
           
           dispatch({
             type: 'WEIGHT_HISTORY_LOAD',
@@ -50,10 +46,8 @@ export const useProgressData = () => {
         // Cargar milestones
         if (!loadingState.current.milestones) {
           loadingState.current.milestones = true
-          console.log('🎯 useProgressData: Cargando milestones...')
           
           const milestones = await ProgressService.getMilestones(user.id)
-          console.log(`✅ useProgressData: Milestones cargados (${milestones.length} registros)`)
           
           dispatch({
             type: 'MILESTONE_HISTORY_LOAD',
@@ -61,7 +55,6 @@ export const useProgressData = () => {
           })
         }
 
-        console.log('🎉 useProgressData: Carga completa finalizada para usuario', user.id)
 
       } catch (error) {
         console.error('❌ useProgressData: Error cargando datos:', error)

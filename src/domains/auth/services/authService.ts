@@ -27,11 +27,9 @@ export class AuthService {
 
   // Registro de usuario
   static async register(credentials: RegisterCredentials) {
-    console.log('🔄 AuthService.register iniciado')
     this.checkConfiguration()
     const { email, password } = credentials
     
-    console.log('📡 Llamando a supabase.auth.signUp...')
     const { data, error } = await supabase!.auth.signUp({
       email,
       password,
@@ -47,7 +45,6 @@ export class AuthService {
       throw error
     }
     
-    console.log('✅ signUp exitoso:', data)
     // NO crear perfil automáticamente - se creará en el onboarding
     return data
   }
@@ -109,12 +106,10 @@ export class AuthService {
   // Obtener perfil de usuario
   static async getProfile(userId: string): Promise<UserProfile | null> {
     if (!supabase) {
-      console.log('⚠️ Supabase no configurado, retornando null')
       return null
     }
     
     try {
-      console.log(`🔍 Consultando perfil para usuario: ${userId}`)
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -123,14 +118,12 @@ export class AuthService {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          console.log(`📋 No existe perfil para usuario ${userId} (esperado en usuarios nuevos)`)
           return null
         }
         console.error('❌ Error inesperado consultando perfil:', error)
         throw error
       }
 
-      console.log(`✅ Perfil encontrado para usuario ${userId}`)
       return data as UserProfile
     } catch (err) {
       console.error('❌ Error en getProfile:', err)
@@ -154,8 +147,6 @@ export class AuthService {
     
     cleanData.updated_at = new Date().toISOString()
 
-    console.log('📤 Enviando datos a Supabase para usuario:', userId)
-    console.log('📤 Datos a enviar:', JSON.stringify(cleanData, null, 2))
     
     // Intentar actualizar primero
     const { data: updateData_result, error: updateError } = await supabase!
@@ -167,14 +158,12 @@ export class AuthService {
 
     // Si el perfil no existe (error PGRST116), crearlo
     if (updateError && updateError.code === 'PGRST116') {
-      console.log('🔄 Perfil no existe, creando nuevo...')
       const insertData = {
         user_id: userId,
         ...cleanData,
       }
       delete insertData.updated_at // No necesario en insert, se auto-genera
       
-      console.log('📤 Datos para crear perfil:', JSON.stringify(insertData, null, 2))
       
       const { data: newProfile, error: insertError } = await supabase!
         .from('user_profiles')
@@ -188,7 +177,6 @@ export class AuthService {
         throw insertError
       }
       
-      console.log('✅ Perfil creado exitosamente:', newProfile)
       return newProfile as UserProfile
     }
 
@@ -199,7 +187,6 @@ export class AuthService {
       throw updateError
     }
     
-    console.log('✅ Perfil actualizado exitosamente:', updateData_result)
     return updateData_result as UserProfile
   }
 
