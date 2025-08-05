@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         throw new Error('Las contraseñas no coinciden')
       }
       
-      const result = await AuthService.register(credentials)
+      await AuthService.register(credentials)
     } catch (err) {
       console.error('❌ Error en useAuth.register:', err)
       setError(err instanceof Error ? err.message : 'Error en el registro')

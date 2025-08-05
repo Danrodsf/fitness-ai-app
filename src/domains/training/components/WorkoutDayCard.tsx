@@ -51,7 +51,7 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
         
         // 🔥 NUEVO: Llamada real a la base de datos
         if (user?.id) {
-          const result = await TrainingService.saveCompleteWorkoutSession(
+          await TrainingService.saveCompleteWorkoutSession(
             user.id, 
             state.training.currentSession
           )

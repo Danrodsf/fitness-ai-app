@@ -49,7 +49,7 @@ export class StorageService {
 
       // Sync training data
       if (data.training.workoutHistory.length > 0) {
-        for (const session of data.training.workoutHistory) {
+        for (const _session of data.training.workoutHistory) {
           // This would require more complex logic to properly sync workout sessions
         }
       }

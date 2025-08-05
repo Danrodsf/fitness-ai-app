@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import { ReactNode } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { AuthModal } from '@/shared/components/modals/AuthModal'
 import { EmailVerificationScreen } from './EmailVerificationScreen'
