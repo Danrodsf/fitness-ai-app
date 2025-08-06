@@ -83,7 +83,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return userProfile
       } catch (err) {
         if (!isMounted) return
-        console.error(`❌ [${source}] Error cargando perfil:`, err)
         
         // Actualizar cache incluso en error
         currentUserId = userId
@@ -125,7 +124,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       } catch (err) {
         if (!isMounted) return
-        console.error('❌ Error initializing auth:', err)
         setError(err instanceof Error ? err.message : 'Error de autenticación')
       } finally {
         // 🔥 FIX: No setear loading(false) aquí, se setea en loadUserProfile
@@ -205,7 +203,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       await AuthService.register(credentials)
     } catch (err) {
-      console.error('❌ Error en useAuth.register:', err)
       setError(err instanceof Error ? err.message : 'Error en el registro')
       throw err
     } finally {

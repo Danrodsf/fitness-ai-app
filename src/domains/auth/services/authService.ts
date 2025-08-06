@@ -41,7 +41,6 @@ export class AuthService {
     })
 
     if (error) {
-      console.error('❌ Error en signUp:', error)
       throw error
     }
     
@@ -120,13 +119,11 @@ export class AuthService {
         if (error.code === 'PGRST116') {
           return null
         }
-        console.error('❌ Error inesperado consultando perfil:', error)
         throw error
       }
 
       return data as UserProfile
     } catch (err) {
-      console.error('❌ Error en getProfile:', err)
       throw err
     }
   }
@@ -172,8 +169,6 @@ export class AuthService {
         .single()
 
       if (insertError) {
-        console.error('❌ Error insertando perfil:', insertError)
-        console.error('❌ Detalles del error:', JSON.stringify(insertError, null, 2))
         throw insertError
       }
       
@@ -182,8 +177,6 @@ export class AuthService {
 
     // Si hay otro tipo de error en la actualización, lanzarlo
     if (updateError) {
-      console.error('❌ Error actualizando perfil:', updateError)
-      console.error('❌ Detalles del error:', JSON.stringify(updateError, null, 2))
       throw updateError
     }
     

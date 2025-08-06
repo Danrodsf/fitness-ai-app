@@ -22,10 +22,7 @@ export class TrainingService {
         .eq('user_id', userId)
         .single()
       
-      if (fetchError) {
-        console.warn('⚠️ Error obteniendo perfil actual:', fetchError)
-        return
-      }
+      if (fetchError) return
 
       // Mantener preferencias existentes y solo actualizar el plan de entrenamiento
       const updatedPreferences = {
@@ -45,14 +42,10 @@ export class TrainingService {
         })
         .eq('user_id', userId)
       
-      if (updateError) {
-        console.warn('⚠️ Error actualizando perfil:', updateError)
-        return
-      }
+      if (updateError) return
       
     } catch (error) {
-      console.warn('⚠️ Error guardando programa de entrenamiento:', error)
-      // No fallar, solo log el error
+      // Fail silently - training program save is not critical
     }
   }
 
@@ -73,67 +66,27 @@ export class TrainingService {
       
       return data.preferences.aiPlans.trainingPlan
     } catch (error) {
-      console.error('❌ Error cargando programa de entrenamiento:', error)
       return null
     }
   }
 
   // Training statistics
   static async getTrainingStats(userId: string) {
-    console.log('📊 TrainingService.getTrainingStats called for user:', userId)
-    
     const client = this.ensureSupabase()
     
     try {
+      // Try direct query to workout_sessions (more reliable than RPC)
       const { data, error } = await client
-        .rpc('get_training_summary', { user_id_param: userId })
-
-      if (error) {
-        console.error('❌ TrainingService.getTrainingStats RPC error:', error)
-        
-        // Fallback: try to get data directly from workout_sessions
-        console.log('🔄 Trying fallback method: direct query to workout_sessions')
-        const { data: fallbackData, error: fallbackError } = await client
-          .from('workout_sessions')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('completed', true)
-          .order('start_time', { ascending: false })
-          .limit(10)
-        
-        if (fallbackError) {
-          console.error('❌ Fallback query also failed:', fallbackError)
-          throw fallbackError
-        }
-        
-        console.log('✅ Fallback data retrieved:', fallbackData?.length || 0, 'sessions')
-        return fallbackData
-      }
-
-      console.log('✅ TrainingService.getTrainingStats success:', data?.length || 0, 'sessions')
-      console.log('🔍 TrainingService raw data:', data)
-      
-      // La función RPC devuelve solo estadísticas agregadas, no sesiones individuales
-      // Vamos a usar el fallback para conseguir sesiones reales
-      console.log('🔄 Using fallback to get individual sessions instead of aggregated stats')
-      const { data: fallbackData, error: fallbackError } = await client
         .from('workout_sessions')
         .select('*')
         .eq('user_id', userId)
         .eq('completed', true)
         .order('start_time', { ascending: false })
+        .limit(20)
       
-      if (fallbackError) {
-        console.error('❌ Fallback query failed:', fallbackError)
-        return data // Return original RPC data if fallback fails
-      }
-      
-      console.log('✅ Fallback found individual sessions:', fallbackData?.length || 0)
-      console.log('🔍 Individual sessions data:', fallbackData)
-      
-      return fallbackData && fallbackData.length > 0 ? fallbackData : data
+      if (error) throw error
+      return data || []
     } catch (error) {
-      console.error('❌ TrainingService.getTrainingStats failed:', error)
       throw error
     }
   }
@@ -197,11 +150,7 @@ export class TrainingService {
         .select()
         .single()
 
-      if (sessionError) {
-        console.error('❌ Error creando workout_session optimizado:', sessionError)
-        console.error('🔥 El schema optimizado requiere session_data. Asegúrate de usar schema_nuevo_optimizado.sql')
-        throw sessionError
-      }
+      if (sessionError) throw sessionError
 
 
       return {
@@ -213,7 +162,6 @@ export class TrainingService {
       }
 
     } catch (error) {
-      console.error('❌ Error guardando sesión optimizada:', error)
       throw error
     }
   }
@@ -295,8 +243,6 @@ export class TrainingService {
         })
 
       if (jsonError) {
-        console.warn('⚠️ Función optimizada no disponible:', jsonError)
-        // Intentar método manual con JSON
         return await this.getLastExercisePerformanceManual(userId, exerciseId)
       }
 
@@ -329,8 +275,8 @@ export class TrainingService {
         if (manualResult && manualResult.maxWeight > maxWeight) {
           return manualResult
         }
-      } catch (error) {
-        // Continuar con datos actuales si falla la búsqueda manual
+      } catch {
+        // Continue with current data if manual search fails
       }
       
       // Progresión inteligente: +2.5kg para pesos >20kg, +1kg para <20kg
@@ -350,8 +296,7 @@ export class TrainingService {
         recommendedWeight: Math.max(recommendedWeight, maxWeight) // No retroceder en peso
       }
 
-    } catch (error) {
-      console.error('❌ Error obteniendo historial del ejercicio:', error)
+    } catch {
       return {
         lastSession: null,
         maxWeight: 0,
@@ -441,8 +386,7 @@ export class TrainingService {
         recommendedWeight: Math.max(recommendedWeight, maxWeight)
       }
 
-    } catch (error) {
-      console.error('❌ Error en búsqueda manual:', error)
+    } catch {
       return {
         lastSession: null,
         maxWeight: 0,
@@ -452,10 +396,12 @@ export class TrainingService {
     }
   }
 
-  // 🔥 NUEVO: Función para debuggear qué ejercicios existen en la BD
+  /**
+   * Obtiene ejercicios únicos disponibles para el usuario
+   * Evita duplicados agrupando ejercicios por nombre base
+   */
   static async getAvailableExercises(userId: string) {
     try {
-      
       const supabaseClient = this.ensureSupabase()
       const { data: sessions, error } = await supabaseClient
         .from('workout_sessions')
@@ -465,53 +411,71 @@ export class TrainingService {
         .order('start_time', { ascending: false })
 
       if (error) {
-        console.error('❌ Error obteniendo sesiones:', error)
-        return []
+        return { exercises: [], totalSessions: 0 }
       }
 
-      const exerciseIds = new Set<string>()
-      const exerciseNames = new Set<string>()
+      // Mapa para evitar duplicados - clave: nombre base, valor: info del ejercicio
+      const uniqueExercises = new Map<string, {
+        id: string
+        name: string
+        baseName: string
+        allIds: string[]
+      }>()
 
       sessions?.forEach(session => {
         try {
           const sessionData = session.session_data
-          if (sessionData && sessionData.exercises) {
+          if (sessionData?.exercises) {
             sessionData.exercises.forEach((ex: any) => {
-              if (ex.exercise_id) exerciseIds.add(ex.exercise_id)
-              if (ex.exercise?.id) exerciseIds.add(ex.exercise.id)
-              if (ex.exercise?.name) {
-                exerciseNames.add(ex.exercise.name)
-                exerciseIds.add(this.normalizeExerciseName(ex.exercise.name))
+              // Obtener ID y nombre del ejercicio
+              const exerciseId = ex.exercise_id || ex.exercise?.id
+              const exerciseName = ex.exercise_name || ex.exercise?.name
+              
+              if (exerciseId && exerciseName) {
+                // Extraer nombre base para agrupar ejercicios similares
+                const baseName = this.extractExerciseBaseName(exerciseId)
+                
+                if (!uniqueExercises.has(baseName)) {
+                  uniqueExercises.set(baseName, {
+                    id: exerciseId,
+                    name: exerciseName,
+                    baseName: baseName,
+                    allIds: [exerciseId]
+                  })
+                } else {
+                  // Añadir ID alternativo pero mantener el primer nombre legible
+                  const existing = uniqueExercises.get(baseName)!
+                  if (!existing.allIds.includes(exerciseId)) {
+                    existing.allIds.push(exerciseId)
+                  }
+                }
               }
             })
           }
-        } catch (e) {
-          console.warn('⚠️ Error procesando sesión:', e)
+        } catch {
+          // Skip problematic session
         }
       })
-
       
       return {
-        ids: Array.from(exerciseIds),
-        names: Array.from(exerciseNames),
+        exercises: Array.from(uniqueExercises.values()),
         totalSessions: sessions?.length || 0
       }
-    } catch (error) {
-      console.error('❌ Error obteniendo ejercicios disponibles:', error)
-      return { ids: [], names: [], totalSessions: 0 }
+    } catch {
+      return { exercises: [], totalSessions: 0 }
     }
   }
 
-  // 🔥 NUEVO: Función para obtener progreso de fuerza por ejercicio
-  static async getExerciseProgressChart(userId: string, exerciseId: string, weeksBack: number = 8) {
-    if (!userId || !exerciseId) {
-      console.warn('❌ getExerciseProgressChart: faltan parámetros')
-      return []
-    }
+  /**
+   * Obtiene progreso de fuerza por ejercicio, buscando en todos los IDs posibles
+   * @param userId - ID del usuario
+   * @param exerciseIds - Array de IDs posibles del ejercicio
+   * @param weeksBack - Semanas hacia atrás
+   */
+  static async getExerciseProgressChart(userId: string, exerciseIds: string[], weeksBack: number = 8) {
+    if (!userId || !exerciseIds?.length) return []
 
     try {
-      
-      // 1. Obtener todas las sesiones del usuario de las últimas semanas
       const cutoffDate = new Date()
       cutoffDate.setDate(cutoffDate.getDate() - (weeksBack * 7))
       
@@ -524,17 +488,10 @@ export class TrainingService {
         .gte('start_time', cutoffDate.toISOString())
         .order('start_time', { ascending: true })
 
-      if (error) {
-        console.error('❌ Error obteniendo sesiones:', error)
-        return []
-      }
+      if (error) return []
 
-      if (!sessions || sessions.length === 0) {
-        return []
-      }
+      if (!sessions?.length) return []
 
-
-      // 2. Extraer datos del ejercicio específico de cada sesión
       const exerciseData: Array<{
         date: string
         maxWeight: number
@@ -545,63 +502,50 @@ export class TrainingService {
       for (const session of sessions) {
         try {
           const sessionData = session.session_data
-          if (!sessionData || !sessionData.exercises) {
-            continue
-          }
+          if (!sessionData?.exercises) continue
 
-
-          // Buscar el ejercicio específico en la sesión
+          // Buscar ejercicio por cualquiera de los IDs posibles
           const exerciseInSession = sessionData.exercises.find((ex: any) => 
-            ex.exercise_id === exerciseId || 
-            ex.exercise?.id === exerciseId ||
-            (ex.exercise?.name && this.normalizeExerciseName(ex.exercise.name) === exerciseId)
+            exerciseIds.includes(ex.exercise_id) || 
+            exerciseIds.includes(ex.exercise?.id) ||
+            exerciseIds.some(id => this.extractExerciseBaseName(ex.exercise_id || '') === this.extractExerciseBaseName(id))
           )
           
-          if (!exerciseInSession) {
-            continue
-          }
+          if (!exerciseInSession) continue
 
-          // Buscar sets en diferentes campos posibles
-          let sets = exerciseInSession.actualSets || 
-                    exerciseInSession.sets || 
-                    exerciseInSession.completedSets || 
-                    exerciseInSession.recorded_sets || []
+          const sets = exerciseInSession.actualSets || 
+                      exerciseInSession.sets || 
+                      exerciseInSession.completedSets || 
+                      exerciseInSession.recorded_sets || []
 
-          if (!sets || sets.length === 0) {
-            continue
-          }
-
+          if (!sets?.length) continue
 
           const weights = sets.map((s: any) => s.weight || 0).filter((w: number) => w > 0)
           const maxWeight = weights.length > 0 ? Math.max(...weights) : 0
           const totalReps = sets.reduce((sum: number, s: any) => sum + (s.reps || 0), 0)
 
-          exerciseData.push({
-            date: session.start_time.split('T')[0],
-            maxWeight,
-            totalReps,
-            sets: sets.map((s: any) => ({ reps: s.reps || 0, weight: s.weight || 0 }))
-          })
-
-        } catch (sessionError) {
-          console.warn('⚠️ Error procesando sesión:', sessionError)
-          continue
+          if (maxWeight > 0 || totalReps > 0) {
+            exerciseData.push({
+              date: session.start_time.split('T')[0],
+              maxWeight,
+              totalReps,
+              sets: sets.map((s: any) => ({ reps: s.reps || 0, weight: s.weight || 0 }))
+            })
+          }
+        } catch {
+          // Skip problematic session
         }
       }
 
-      if (exerciseData.length === 0) {
-        return []
-      }
+      if (!exerciseData.length) return []
 
-
-      // 3. Ordenar por fecha y generar datos para gráfico de líneas
-      const chartData = exerciseData
+      // Ordenar y generar datos del gráfico
+      return exerciseData
         .sort((a, b) => a.date.localeCompare(b.date))
         .map((data, index) => {
           const sessionDate = new Date(data.date)
           const dateLabel = `${sessionDate.getDate()}/${sessionDate.getMonth() + 1}`
           
-          // Calcular tendencia comparando con sesión anterior
           let trend = 'stable'
           if (index > 0) {
             const prevWeight = exerciseData[index - 1].maxWeight
@@ -618,11 +562,7 @@ export class TrainingService {
             sets: data.sets
           }
         })
-
-      return chartData
-
-    } catch (error) {
-      console.error(`❌ Error obteniendo progreso de ${exerciseId}:`, error)
+    } catch {
       return []
     }
   }

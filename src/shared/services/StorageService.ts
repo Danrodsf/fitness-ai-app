@@ -26,7 +26,6 @@ export class StorageService {
       // Create backup every hour
       this.createPeriodicBackup(dataToSave)
     } catch (error) {
-      console.error('Error saving data to localStorage:', error)
       throw new Error('Failed to save data')
     }
   }
@@ -66,7 +65,6 @@ export class StorageService {
       }
 
     } catch (error) {
-      console.error('Error syncing data to Supabase:', error)
       throw new Error('Failed to sync data')
     }
   }
@@ -97,7 +95,6 @@ export class StorageService {
       try {
         nutritionGoals = await NutritionService.getNutritionGoals(userId)
       } catch (error) {
-        console.warn('⚠️ No se pudieron cargar nutrition goals:', error)
       }
       
       // Deshabilitar dailyEntries por ahora (tabla puede no existir)
@@ -132,7 +129,6 @@ export class StorageService {
         }
       }
     } catch (error) {
-      console.error('Error loading data from Supabase:', error)
       // Fallback to localStorage
       return this.loadData()
     }
@@ -147,13 +143,11 @@ export class StorageService {
       
       // Validate data structure
       if (!data || typeof data !== 'object') {
-        console.warn('Invalid stored data format')
         return null
       }
 
       return data
     } catch (error) {
-      console.error('Error loading data from localStorage:', error)
       return null
     }
   }
@@ -184,7 +178,6 @@ export class StorageService {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data))
       
     } catch (error) {
-      console.error('Error importing data:', error)
       throw new Error('Failed to import data: Invalid format')
     }
   }
@@ -209,7 +202,6 @@ export class StorageService {
       
       URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Error downloading backup:', error)
       throw new Error('Failed to download backup')
     }
   }
@@ -252,7 +244,7 @@ export class StorageService {
       try {
         localStorage.setItem(backupKey, JSON.stringify(data))
       } catch (retryError) {
-        console.warn('Unable to create backup: storage full')
+        // Storage full, backup failed
       }
     }
   }

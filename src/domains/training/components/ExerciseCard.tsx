@@ -276,20 +276,20 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
   return (
     <Card 
       className={clsx(
-        'transition-all duration-300 hover:shadow-md max-w-full overflow-hidden',
+        'transition-all duration-300 hover:shadow-md',
         completed && 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 opacity-75',
         isActive && 'border-primary-300 dark:border-primary-600 shadow-lg',
         !isActive && !completed && 'hover:border-gray-300 dark:hover:border-gray-600'
       )}
     >
-      <CardContent className="p-2 sm:p-4 max-w-full overflow-hidden">
-        <div className="space-y-2 sm:space-y-3">
+      <CardContent className="p-4">
+        <div className="space-y-3">
           {/* Exercise header */}
-          <div className="w-full">
+          <div>
             {/* Title and basic info */}
-            <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2">
               <div className={clsx(
-                "flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 rounded-full font-semibold text-sm transition-colors duration-200 flex-shrink-0",
+                "flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm transition-colors duration-200 flex-shrink-0",
                 completed 
                   ? "bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400"
                   : "bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400"
@@ -298,30 +298,30 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
               </div>
               <div className="flex-1 min-w-0">
                 <h5 className={clsx(
-                  "font-semibold transition-colors duration-200 text-base sm:text-lg break-words",
+                  "font-semibold transition-colors duration-200 text-lg",
                   completed ? "text-green-700 dark:text-green-400 line-through" : "text-gray-900 dark:text-white"
                 )}>
                   {exercise.name}
                 </h5>
               </div>
-              <span className="text-xl sm:text-lg flex-shrink-0">{getCategoryIcon(exercise.category)}</span>
+              <span className="text-lg flex-shrink-0">{getCategoryIcon(exercise.category)}</span>
             </div>
             
             {/* Badges and action buttons */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" size="sm" className="text-xs sm:text-sm">
+                <Badge variant="outline" size="sm">
                   {plannedSets} series × {plannedReps} reps
                 </Badge>
-                <Badge variant={getDifficultyColor(exercise.difficulty)} size="sm" className="text-xs sm:text-sm">
+                <Badge variant={getDifficultyColor(exercise.difficulty)} size="sm">
                   {exercise.difficulty}
                 </Badge>
                 {/* Current training week */}
-                <Badge variant="primary" size="sm" className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 text-xs sm:text-sm">
+                <Badge variant="primary" size="sm" className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700">
                   📅 {weekInfo}
                 </Badge>
                 {completed && (
-                  <Badge variant="success" size="sm" className="animate-pulse bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700 text-xs sm:text-sm">
+                  <Badge variant="success" size="sm" className="animate-pulse bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">
                     <CheckCircle size={12} className="mr-1" />
                     ✓ Completado
                   </Badge>
@@ -335,7 +335,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                     size="sm"
                     onClick={() => window.open(exercise.videoUrl, '_blank')}
                     leftIcon={<ExternalLink size={16} />}
-                    className="min-h-[44px] px-4 text-sm w-full sm:w-auto justify-center"
+                    className="h-10 px-4 text-sm w-full sm:w-auto justify-center"
                   >
                     Ver Video
                   </Button>
@@ -347,7 +347,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                     size="sm"
                     onClick={handleToggleComplete}
                     leftIcon={<CheckCircle size={16} />}
-                    className="min-h-[44px] px-4 text-sm w-full sm:w-auto justify-center font-medium"
+                    className="h-10 px-4 text-sm w-full sm:w-auto justify-center font-medium"
                   >
                     {completed ? '✓ Completado' : 'Marcar como hecho'}
                   </Button>
@@ -358,8 +358,8 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
             {/* Full-width status components */}
             {/* Exercise history from last session */}
             {lastPerformance?.lastSession && (
-              <div className="w-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2 sm:p-4 mb-2 sm:mb-3">
-                <div className="flex items-center gap-2 mb-2 sm:mb-3 w-full">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-3">
+                <div className="flex items-center gap-2 mb-3">
                   <History size={16} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
                   <span className="text-sm font-medium text-blue-800 dark:text-blue-200 break-words flex-1">
                     Último entrenamiento ({lastPerformance.lastSession.date})
@@ -368,16 +368,16 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                 
                 {/* Mostrar datos si existen, o mensaje informativo si no hay sets */}
                 {lastPerformance.lastSession.sets && lastPerformance.lastSession.sets.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm mb-2 sm:mb-3 w-full">
-                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-3">
+                    <div className="flex items-center justify-between sm:justify-start gap-2">
                       <span className="text-gray-600 dark:text-gray-300">Max:</span>
                       <span className="font-semibold text-blue-700 dark:text-blue-300">{lastPerformance.maxWeight}kg</span>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                    <div className="flex items-center justify-between sm:justify-start gap-2">
                       <span className="text-gray-600 dark:text-gray-300">Total:</span>
                       <span className="font-semibold text-blue-700 dark:text-blue-300">{lastPerformance.totalReps} reps</span>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                    <div className="flex items-center justify-between sm:justify-start gap-2">
                       <TrendingUp size={16} className="text-green-500 flex-shrink-0" />
                       <span className="text-green-600 dark:text-green-400 font-semibold">
                         Rec: {lastPerformance.recommendedWeight}kg
@@ -385,7 +385,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-2 w-full">
+                  <div className="text-center py-2">
                     <span className="text-sm text-gray-600 dark:text-gray-400">
                       No se registraron series en esta sesión
                     </span>
@@ -394,7 +394,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                 
                 {/* Mostrar series anteriores solo si existen */}
                 {lastPerformance.lastSession.sets && lastPerformance.lastSession.sets.length > 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400 break-words bg-white dark:bg-gray-700 rounded p-2 sm:p-3 w-full">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 rounded p-3">
                     <span className="font-medium">Series anteriores:</span> {lastPerformance.lastSession.sets.map(set => 
                       `${set.reps}×${set.weight}kg`
                     ).join(', ')}
@@ -405,8 +405,8 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
 
             {/* Mostrar cuando está cargando historial */}
             {isLoadingHistory && (
-              <div className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
-                <div className="flex items-center justify-center gap-3 w-full">
+              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-3">
+                <div className="flex items-center justify-center gap-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600"></div>
                   <span className="text-sm text-gray-600 dark:text-gray-300">
                     Cargando historial...
@@ -417,8 +417,8 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
 
             {/* Mensaje si es primera vez haciendo el ejercicio */}
             {!isLoadingHistory && !lastPerformance?.lastSession && (
-              <div className="w-full bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3 sm:p-4 mb-2 sm:mb-3">
-                <div className="flex items-center justify-center gap-3 w-full">
+              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mb-3">
+                <div className="flex items-center justify-center gap-3">
                   <Target size={16} className="text-purple-600 dark:text-purple-400 flex-shrink-0" />
                   <span className="text-sm font-medium text-purple-800 dark:text-purple-200">
                     ¡Primer entrenamiento! 🎯
@@ -430,11 +430,11 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
 
           {/* Exercise tips */}
           {exercise.tips?.length > 0 && (
-            <div className="space-y-2 sm:space-y-3 w-full">
+            <div className="space-y-3">
               {exercise.tips?.map((tip, index) => (
-                <div key={index} className="flex items-start gap-2 sm:gap-3 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2 sm:p-3 w-full">
+                <div key={index} className="flex items-start gap-3 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                   <AlertCircle size={16} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700 dark:text-gray-300 break-words leading-relaxed flex-1">{tip}</span>
+                  <span className="text-gray-700 dark:text-gray-300 leading-relaxed flex-1">{tip}</span>
                 </div>
               ))}
             </div>
@@ -443,8 +443,8 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
 
           {/* Sets tracking for active workouts */}
           {isActive && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-5">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h6 className="font-semibold text-gray-900 dark:text-white text-base">
                   Series registradas ({actualSets.length}/{plannedSets})
                 </h6>
@@ -454,18 +454,18 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                   onClick={handleAddSet}
                   leftIcon={<Plus size={16} />}
                   disabled={actualSets.length >= plannedSets || isAddingSet}
-                  className="min-h-[44px] px-4 text-sm w-full sm:w-auto justify-center font-medium"
+                  className="h-10 px-4 text-sm w-full sm:w-auto justify-center font-medium"
                 >
                   Añadir serie
                 </Button>
               </div>
 
               {actualSets.length > 0 && (
-                <div className="space-y-2 sm:space-y-3 w-full">
+                <div className="space-y-3">
                   {actualSets.map((set, index) => (
                     <div 
                       key={index} 
-                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm border border-gray-200 dark:border-gray-700 w-full"
+                      className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm border border-gray-200 dark:border-gray-700"
                     >
                       <span className="font-semibold w-12 text-base flex-shrink-0 text-primary-600 dark:text-primary-400">#{index + 1}</span>
                       
@@ -571,13 +571,13 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
 
               {/* Add new set form */}
               {isAddingSet && (
-                <div className="w-full p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-3 sm:space-y-4">
-                  <h6 className="font-semibold text-gray-900 dark:text-white text-base w-full">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-4">
+                  <h6 className="font-semibold text-gray-900 dark:text-white text-base">
                     Registrar nueva serie
                   </h6>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
-                    <div className="space-y-2 w-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Repeticiones</label>
                       <Input
                         type="number"
@@ -586,10 +586,10 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                         onChange={(e) => setNewSetReps(e.target.value)}
                         min="1"
                         max="50"
-                        className="text-base h-12 w-full"
+                        className="text-base h-12"
                       />
                     </div>
-                    <div className="space-y-2 w-full">
+                    <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Peso (kg)</label>
                       <Input
                         type="number"
@@ -598,19 +598,19 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                         value={newSetWeight}
                         onChange={(e) => setNewSetWeight(e.target.value)}
                         min="0"
-                        className="text-base h-12 w-full"
+                        className="text-base h-12"
                       />
                     </div>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       variant="primary"
                       size="sm"
                       onClick={handleSaveSet}
                       disabled={!newSetReps}
                       leftIcon={<Save size={16} />}
-                      className="flex-1 min-h-[48px] text-base font-medium w-full sm:w-auto"
+                      className="flex-1 h-12 text-base font-medium w-full sm:w-auto"
                     >
                       Guardar serie
                     </Button>
@@ -619,7 +619,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                       size="sm"
                       onClick={handleCancelSet}
                       leftIcon={<X size={16} />}
-                      className="min-h-[48px] text-base w-full sm:w-auto"
+                      className="h-12 text-base w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
@@ -628,7 +628,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
               )}
 
               {actualSets.length === 0 && !isAddingSet && (
-                <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400 w-full">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <Target size={24} className="mx-auto mb-3 opacity-50" />
                   <p className="text-base font-medium mb-1">
                     No hay series registradas
@@ -646,31 +646,31 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full min-h-[48px] text-base font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="w-full h-12 text-base font-medium border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             {isExpanded ? 'Ocultar detalles' : 'Ver más detalles'}
           </Button>
 
           {/* Expanded details */}
           {isExpanded && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-5 space-y-3 sm:space-y-4 animate-slide-down w-full">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-5 space-y-4 animate-slide-down">
               {exercise.description && (
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4 w-full">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                   <h6 className="font-semibold text-gray-900 dark:text-white mb-3 text-base">
                     Descripción
                   </h6>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 break-words leading-relaxed">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                     {exercise.description}
                   </p>
                 </div>
               )}
               
               {exercise.targetMuscles && exercise.targetMuscles.length > 0 && (
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 sm:p-4 w-full">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                   <h6 className="font-semibold text-gray-900 dark:text-white mb-3 text-base">
                     Músculos trabajados
                   </h6>
-                  <div className="flex flex-wrap gap-2 w-full">
+                  <div className="flex flex-wrap gap-2">
                     {exercise.targetMuscles.map((muscle, index) => (
                       <Badge key={index} variant="outline" size="sm" className="text-sm px-3 py-1">
                         {muscle}

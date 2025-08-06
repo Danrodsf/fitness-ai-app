@@ -113,7 +113,7 @@ export class ProgressAnalysisService {
         this.notifyUserOfAnalysis(analysis)
       }
     } catch (error) {
-      console.error('Error in automatic progress analysis:', error)
+      // Analysis failed silently
     }
   }
 
@@ -152,7 +152,6 @@ export class ProgressAnalysisService {
       this.storeAnalysisResult(analysis)
       return analysis
     } catch (error) {
-      console.error('Error in manual progress analysis:', error)
       return null
     }
   }
@@ -220,7 +219,7 @@ export class ProgressAnalysisService {
       localStorage.setItem(this.LAST_ANALYSIS_KEY, Date.now().toString())
       localStorage.setItem(`${this.LAST_ANALYSIS_KEY}_workouts`, workoutCount.toString())
     } catch (error) {
-      console.warn('Error storing analysis timestamp:', error)
+      // Failed to store timestamp
     }
   }
 
@@ -230,7 +229,7 @@ export class ProgressAnalysisService {
       const updated = [analysis, ...existing].slice(0, 10) // Keep last 10 analyses
       localStorage.setItem(this.ANALYSIS_STORAGE_KEY, JSON.stringify(updated))
     } catch (error) {
-      console.warn('Error storing analysis result:', error)
+      // Failed to store analysis
     }
   }
 
@@ -245,8 +244,6 @@ export class ProgressAnalysisService {
 
   private static notifyUserOfAnalysis(analysis: ProgressAnalysisResult): void {
     // This would trigger a notification in the app
-    console.log('📊 New progress analysis available:', analysis)
-    
     // Could dispatch a notification action here
     // dispatch({ type: 'NOTIFICATION_ADD', payload: { ... } })
   }

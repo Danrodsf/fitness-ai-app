@@ -14,7 +14,6 @@ export const useProgressAnalysis = () => {
     const shouldAnalyze = ProgressAnalysisService.scheduleAutomaticAnalysis(state)
     
     if (shouldAnalyze) {
-      console.log('🤖 Triggering automatic progress analysis...')
     }
   }, [
     state.user.stats.totalWorkouts,
@@ -61,7 +60,6 @@ export const useProgressAnalysis = () => {
 
       return result
     } catch (error) {
-      console.error('Error triggering manual analysis:', error)
       dispatch({ 
         type: 'NOTIFICATION_ADD', 
         payload: { 

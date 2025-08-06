@@ -92,18 +92,18 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
     <Card 
       variant={isCurrentSession ? 'glass' : 'default'} 
       className={clsx(
-        'transition-all duration-300 w-full max-w-full overflow-hidden',
+        'transition-all duration-300',
         isCurrentSession && 'ring-2 ring-primary-500 shadow-glow',
         workoutDay.completed && 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800'
       )}
     >
-      <CardHeader className="p-3 sm:p-4 md:p-6">
+      <CardHeader className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div className="space-y-2 flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="space-y-2 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex items-center gap-2">
                 <Calendar className="text-primary-600 dark:text-primary-400" size={18} />
-                <CardTitle className="text-base sm:text-lg break-words">
+                <CardTitle className="text-lg">
                   {workoutDay.name}
                 </CardTitle>
               </div>
@@ -123,11 +123,11 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
               </div>
             </div>
             
-            <p className="text-sm text-gray-600 dark:text-gray-300 break-words">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               {workoutDay.description}
             </p>
             
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <Clock size={16} />
                 <span>{workoutDay.estimatedDuration} min</span>
@@ -150,7 +150,7 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
               <Button 
                 onClick={handleStartWorkout} 
                 leftIcon={<Play size={16} />}
-                className="w-full sm:w-auto min-h-[44px]"
+                className="w-full sm:w-auto h-10"
               >
                 Comenzar
               </Button>
@@ -161,7 +161,7 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
                 variant="success" 
                 onClick={handleCompleteWorkout}
                 leftIcon={<CheckCircle size={16} />}
-                className="w-full sm:w-auto min-h-[44px]"
+                className="w-full sm:w-auto h-10"
               >
                 Completar
               </Button>
@@ -196,33 +196,33 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="animate-slide-down p-4 sm:p-6 w-full max-w-full">
+        <CardContent className="animate-slide-down p-6">
           {/* Warm up */}
-          <div className="mb-6 w-full">
+          <div className="mb-6">
             <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-3">
               <Flame className="text-orange-500" size={18} />
               <span>Calentamiento (10 min)</span>
             </h4>
-            <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300 w-full">
+            <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
               {workoutDay.warmUp?.map((warmUpItem, index) => (
-                <li key={index} className="flex items-start gap-2 w-full">
+                <li key={index} className="flex items-start gap-2">
                   <div className="w-2 h-2 bg-orange-400 rounded-full flex-shrink-0 mt-1" />
-                  <span className="break-words leading-relaxed flex-1">{warmUpItem}</span>
+                  <span className="leading-relaxed flex-1">{warmUpItem}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Exercises */}
-          <div className="space-y-4 w-full">
+          <div className="space-y-4">
             <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
               <List className="text-primary-600 dark:text-primary-400" size={18} />
               <span>Ejercicios Principales</span>
             </h4>
             
-            <div className="space-y-4 w-full">
+            <div className="space-y-4">
               {exercisesToUse.map((workoutExercise, index) => (
-                <div key={`${workoutDay.id}-${workoutExercise.exercise?.id || index}-${index}`} className="w-full">
+                <div key={`${workoutDay.id}-${workoutExercise.exercise?.id || index}-${index}`}>
                   <ExerciseCard
                     workoutExercise={workoutExercise}
                     exerciseNumber={index + 1}
@@ -234,17 +234,17 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
           </div>
 
           {/* Rest info */}
-          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg w-full">
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
               <Clock size={16} />
-              <span className="font-medium text-sm break-words">Descanso entre series: 90-120 segundos</span>
+              <span className="font-medium text-sm">Descanso entre series: 90-120 segundos</span>
             </div>
           </div>
 
           {/* Special notes */}
           {workoutDay.notes && (
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 w-full">
-              <p className="text-blue-800 dark:text-blue-200 text-sm break-words leading-relaxed">
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
                 <strong>Nota:</strong> {workoutDay.notes}
               </p>
             </div>

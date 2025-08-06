@@ -2,7 +2,6 @@ import { supabase } from '@/domains/auth/services/authService'
 import { WeightEntry, Measurement, Milestone, PerformanceMetric, WeeklyProgress } from '../types'
 
 export class ProgressService {
-  // Helper para mapear de snake_case a camelCase
   private static mapWeightEntryFromDB(dbEntry: any): WeightEntry {
     return {
       id: dbEntry.id,
@@ -16,7 +15,6 @@ export class ProgressService {
     }
   }
 
-  // Helper para mapear de camelCase a snake_case  
   private static mapWeightEntryToDB(entry: Partial<WeightEntry>): any {
     const mapped: any = {}
     if (entry.weight !== undefined) mapped.weight = entry.weight
@@ -27,7 +25,6 @@ export class ProgressService {
     return mapped
   }
 
-  // Helper para mapear milestones de snake_case a camelCase
   private static mapMilestoneFromDB(dbMilestone: any): Milestone {
     return {
       id: dbMilestone.id,
@@ -45,7 +42,6 @@ export class ProgressService {
     }
   }
 
-  // Helper para mapear milestones de camelCase a snake_case
   private static mapMilestoneToDB(milestone: Partial<Milestone>): any {
     const mapped: any = {}
     if (milestone.title !== undefined) mapped.title = milestone.title
@@ -60,7 +56,6 @@ export class ProgressService {
     return mapped
   }
 
-  // Weight tracking
   static async addWeightEntry(userId: string, entry: Omit<WeightEntry, 'id' | 'createdAt' | 'updatedAt'>) {
     if (!supabase) throw new Error('Supabase client no configurado')
     
@@ -122,7 +117,6 @@ export class ProgressService {
     if (error) throw error
   }
 
-  // Measurements
   static async addMeasurement(userId: string, measurement: Omit<Measurement, 'id' | 'createdAt' | 'updatedAt'>) {
     if (!supabase) throw new Error('Supabase client no configurado')
     
@@ -152,7 +146,6 @@ export class ProgressService {
     return data as Measurement[]
   }
 
-  // Milestones
   static async addMilestone(userId: string, milestone: Omit<Milestone, 'id' | 'createdAt' | 'updatedAt'>) {
     if (!supabase) throw new Error('Supabase client no configurado')
     
@@ -210,7 +203,6 @@ export class ProgressService {
     })
   }
 
-  // Performance metrics
   static async savePerformanceMetric(userId: string, metric: Omit<PerformanceMetric, 'id'>) {
     if (!supabase) throw new Error('Supabase client no configurado')
     
@@ -249,7 +241,6 @@ export class ProgressService {
     })) as PerformanceMetric[]
   }
 
-  // Weekly progress
   static async saveWeeklyProgress(userId: string, progress: Omit<WeeklyProgress, 'id'>) {
     if (!supabase) throw new Error('Supabase client no configurado')
     

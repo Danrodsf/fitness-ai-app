@@ -66,7 +66,7 @@ export class AIService {
       }
       localStorage.setItem(cacheKey, JSON.stringify(cacheData))
     } catch (error) {
-      console.warn('Error guardando cache de IA:', error)
+      // Silently fail cache save
     }
   }
 
@@ -86,7 +86,6 @@ export class AIService {
 
       return cacheData.response
     } catch (error) {
-      console.warn('Error cargando cache de IA:', error)
       return null
     }
   }
@@ -144,7 +143,6 @@ export class AIService {
 
       return this.transformAITrainingPlan(parsedResponse.trainingPlan)
     } catch (error) {
-      console.error('Error regenerating training plan:', error)
       throw error
     }
   }
@@ -240,13 +238,12 @@ export class AIService {
       // Validar que cada día tenga la estructura correcta
       nutritionPlan.weeklyPlan.days.forEach((day: any, index: number) => {
         if (!day.day || !day.breakfast || !day.lunch || !day.dinner) {
-          console.error(`❌ Día ${index + 1} tiene estructura incompleta:`, day)
+          // Day structure validation failed
         }
       })
 
       return nutritionPlan
     } catch (error) {
-      console.error('❌ Error regenerating nutrition plan:', error)
       throw error
     }
   }
@@ -262,7 +259,6 @@ export class AIService {
       if (cachedResponse) {
         return cachedResponse
       }
-    } else {
     }
 
     // Si no hay configuración de IA, devolver plan por defecto
@@ -324,14 +320,12 @@ export class AIService {
       // Guardar en cache la respuesta exitosa (solo si no es forzada)
       if (!forceNewCall) {
         this.saveToCache(cacheKey, aiResponse)
-      } else {
       }
 
       return aiResponse
 
     } catch (error) {
-      console.error('Error calling AI service:', error)
-      // Fallback al plan por defecto
+      // Fallback to default plan if AI fails
       return this.generateDefaultPlan(data)
     }
   }

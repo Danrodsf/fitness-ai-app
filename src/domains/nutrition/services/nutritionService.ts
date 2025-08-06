@@ -58,7 +58,6 @@ export class NutritionService {
     }
 
     if (error) {
-      console.error('❌ Error guardando objetivos nutricionales:', error)
       throw error
     }
     
@@ -173,7 +172,6 @@ export class NutritionService {
       .single()
 
     if (error) {
-      console.error('Error guardando plan de comidas:', error)
       throw error
     }
     
@@ -213,7 +211,6 @@ export class NutritionService {
       .single()
 
     if (error && error.code !== 'PGRST116') {
-      console.error('Error obteniendo plan de comidas:', error)
       throw error
     }
     
@@ -232,7 +229,6 @@ export class NutritionService {
 
     // Solo log si hay problemas con la estructura
     if (!Array.isArray(result.days)) {
-      console.warn('⚠️ Days no es array en datos de Supabase:', result.days)
     }
 
     return result

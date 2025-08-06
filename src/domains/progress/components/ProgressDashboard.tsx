@@ -18,10 +18,10 @@ export const ProgressDashboard = () => {
   const { state, dispatch } = useAppContext()
   const { profile, user } = useAuth()
   
-  // 🔥 SOLUCIÓN DEFINITIVA: Custom hook que maneja carga de datos UNA VEZ
+  // Custom hook that manages data loading once
   useProgressData()
   
-  // 🔥 NUEVO: Estado para progreso de ejercicios
+  // Estado para progreso de ejercicios
   const [exerciseProgress, setExerciseProgress] = useState<Array<{ 
     exerciseId: string; 
     name: string; 
@@ -41,9 +41,8 @@ export const ProgressDashboard = () => {
       })
     }
 
-    // 🔥 NUEVO: Generar objetivos personalizados basados en el perfil del usuario
+    // Generar objetivos personalizados basados en el perfil del usuario
     if (state.progress.milestones.length === 0 && profile) {
-      
       // Obtener datos del onboarding si están disponibles
       const onboardingData = profile.preferences?.onboardingData
       
@@ -100,38 +99,24 @@ export const ProgressDashboard = () => {
         // 🔥 ARREGLADO: Obtener ejercicios reales del usuario en lugar de lista hardcoded
         const availableExercises = await TrainingService.getAvailableExercises(user.id)
         
-        // Verificar que availableExercises tiene la estructura correcta
-        if (!availableExercises || typeof availableExercises !== 'object' || !('ids' in availableExercises)) {
-          setExerciseProgress([])
-          setIsLoadingProgress(false)
-          return
-        }
-        
-        
-        if (availableExercises.ids.length === 0) {
+        if (!availableExercises?.exercises?.length) {
           setExerciseProgress([])
           setIsLoadingProgress(false)
           return
         }
         
         const progressResults = await Promise.allSettled(
-          availableExercises.ids.map(async (exerciseId: string) => {
+          availableExercises.exercises.map(async (exercise: any) => {
             try {
-              const chartData = await TrainingService.getExerciseProgressChart(user.id, exerciseId, 8)
-              
-              // Buscar nombre legible del ejercicio
-              const exerciseName = availableExercises.names?.find((name: string) => 
-                TrainingService.normalizeExerciseName(name) === exerciseId
-              ) || exerciseId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
-              
+              const chartData = await TrainingService.getExerciseProgressChart(user.id, exercise.allIds, 8)
               
               return {
-                exerciseId,
-                name: exerciseName,
+                exerciseId: exercise.id,
+                name: exercise.name,
+                baseName: exercise.baseName,
                 weeklyData: chartData || []
               }
-            } catch (error) {
-              console.warn(`⚠️ No se pudo cargar progreso para ${exerciseId}:`, error)
+            } catch {
               return null
             }
           })
@@ -146,9 +131,7 @@ export const ProgressDashboard = () => {
         
         setExerciseProgress(validProgress)
         
-      } catch (error) {
-        console.error('Error cargando progreso de ejercicios:', error)
-        // En caso de error, no mostrar nada pero no romper la UI
+      } catch {
         setExerciseProgress([])
       } finally {
         setIsLoadingProgress(false)
@@ -162,11 +145,11 @@ export const ProgressDashboard = () => {
   const currentWeight = state.progress.weightHistory[0]?.weight || profile?.weight || 70
   const userHeight = profile?.height || 170
   
-  // 🔥 ARREGLADO: Obtener objetivos del onboarding
+  // Obtener objetivos del onboarding
   const onboardingData = profile?.preferences?.onboardingData
   const primaryGoal = onboardingData?.primaryGoal || 'general_health'
   
-  // 🔥 NUEVO: Calcular objetivo inteligente usando sistema científico
+  // Calcular objetivo inteligente usando sistema científico
   const getSmartWeightTarget = () => {
     if (!profile || currentWeight === 0) return { targetWeight: currentWeight, strategy: 'Cargando...' }
     
@@ -182,7 +165,6 @@ export const ProgressDashboard = () => {
     }
     
     const smartGoal = calculateSmartWeightGoal(userData)
-    
     
     return {
       targetWeight: smartGoal.targetWeight,
@@ -200,13 +182,13 @@ export const ProgressDashboard = () => {
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Progress Header */}
       <Card variant="glass">
-        <CardHeader className="p-2 xs:p-3 sm:p-4 md:p-6">
-          <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 xs:gap-4">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-base xs:text-lg sm:text-xl md:text-2xl text-primary-600 dark:text-primary-400 break-words">
+        <CardHeader className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className="text-xl text-primary-600 dark:text-primary-400">
                 Seguimiento de Progreso
               </CardTitle>
-              <p className="mt-2 text-xs xs:text-sm sm:text-base text-gray-600 dark:text-gray-300 break-words">
+              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                 Registra tu evolución y alcanza tus objetivos
               </p>
             </div>
@@ -218,34 +200,34 @@ export const ProgressDashboard = () => {
       </Card>
 
       {/* Key Metrics Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="text-center">
-          <CardContent className="p-2 xs:p-3 sm:p-4">
+          <CardContent className="p-4">
             <div className="flex items-center justify-center mb-2">
               <TrendingUp className="text-primary-600 dark:text-primary-400" size={16} />
             </div>
-            <div className="text-sm xs:text-base sm:text-lg font-bold text-primary-600 dark:text-primary-400 mb-1">
+            <div className="text-lg font-bold text-primary-600 dark:text-primary-400 mb-1">
               {currentWeight}kg
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Peso Actual
             </div>
           </CardContent>
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-2 xs:p-3 sm:p-4">
+          <CardContent className="p-4">
             <div className="flex items-center justify-center mb-2">
               <Target className="text-orange-600 dark:text-orange-400" size={16} />
             </div>
-            <div className="text-sm xs:text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400 mb-1">
+            <div className="text-lg font-bold text-orange-600 dark:text-orange-400 mb-1">
               {Math.round(targetWeight)}kg
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 break-words">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               {smartTarget.strategy}
             </div>
             {smartTarget.timeframe && (
-              <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+              <div className="text-sm text-orange-600 dark:text-orange-400 mt-1">
                 {smartTarget.timeframe}m
               </div>
             )}
@@ -253,20 +235,20 @@ export const ProgressDashboard = () => {
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-2 xs:p-3 sm:p-4">
+          <CardContent className="p-4">
             <div className="flex items-center justify-center mb-2">
               <Activity className="text-green-600 dark:text-green-400" size={16} />
             </div>
-            <div className="text-sm xs:text-base sm:text-lg font-bold text-green-600 dark:text-green-400 mb-1">
+            <div className="text-lg font-bold text-green-600 dark:text-green-400 mb-1">
               {targetWeight > currentWeight ? 
                 `+${(targetWeight - currentWeight).toFixed(1)}` : 
                 `${(targetWeight - currentWeight).toFixed(1)}`}kg
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               {targetWeight > currentWeight ? 'Por ganar' : 
                targetWeight < currentWeight ? 'Por perder' : 'Mantener'}
             </div>
-            <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+            <div className="text-sm text-green-600 dark:text-green-400 mt-1">
               {state.progress.stats?.totalDaysTracked ? 
                 `${state.progress.stats.totalDaysTracked} días` : 
                 'Comenzar'}
@@ -275,14 +257,14 @@ export const ProgressDashboard = () => {
         </Card>
 
         <Card className="text-center">
-          <CardContent className="p-2 xs:p-3 sm:p-4">
+          <CardContent className="p-4">
             <div className="flex items-center justify-center mb-2">
               <Award className="text-purple-600 dark:text-purple-400" size={16} />
             </div>
-            <div className="text-sm xs:text-base sm:text-lg font-bold text-purple-600 dark:text-purple-400 mb-1">
+            <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mb-1">
               {state.progress.milestones.filter(m => m.completed).length}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
               Logros
             </div>
           </CardContent>
@@ -290,9 +272,9 @@ export const ProgressDashboard = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-2 gap-3 xs:gap-4 lg:gap-8">
+      <div className="grid lg:grid-cols-2 gap-6">
         {/* Left Column */}
-        <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+        <div className="space-y-6">
           <WeightTracker />
           <BMICard 
             currentWeight={currentWeight} 
@@ -304,14 +286,14 @@ export const ProgressDashboard = () => {
         </div>
 
         {/* Right Column */}
-        <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+        <div className="space-y-6">
           <ProgressInsightsCard />
           <MilestonesCard />
           <ProgressStats />
         </div>
       </div>
 
-      {/* 🔥 NUEVO: Progreso de Ejercicios */}
+      {/* Progreso de Ejercicios */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -485,13 +467,13 @@ export const ProgressDashboard = () => {
                       <div className="text-lg font-bold text-primary-600 dark:text-primary-400">
                         {exercise.weeklyData[0]?.maxWeight || 0}kg
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Peso Inicial</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Peso Inicial</div>
                     </div>
                     <div>
                       <div className="text-lg font-bold text-green-600 dark:text-green-400">
                         {exercise.weeklyData[exercise.weeklyData.length - 1]?.maxWeight || 0}kg
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Peso Actual</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Peso Actual</div>
                     </div>
                   </div>
                 </div>
