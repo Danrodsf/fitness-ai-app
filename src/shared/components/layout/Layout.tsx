@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { Header } from './Header'
+import { AICoachChat } from '@/shared/components/AICoachChat'
 
 interface LayoutProps {
   children: ReactNode
@@ -13,6 +14,9 @@ export const Layout = ({ children }: LayoutProps) => {
       <main className="max-w-7xl mx-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8 py-3 xs:py-4 sm:py-6 md:py-8">
         {children}
       </main>
+      
+      {/* AI Coach Chat - Available globally */}
+      <AICoachChat />
       
       {/* Background decoration */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">

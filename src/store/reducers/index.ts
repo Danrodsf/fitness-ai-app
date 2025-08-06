@@ -5,6 +5,7 @@ import { nutritionReducer } from './nutritionReducer'
 import { progressReducer } from './progressReducer'
 import { themeReducer } from './themeReducer'
 import { notificationReducer } from './notificationReducer'
+import { chatReducer } from './chatReducer'
 
 export const appReducer = (state: AppState, action: AppAction): AppState => {
   // Handle global actions first
@@ -17,6 +18,7 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
         nutrition: nutritionReducer(state.nutrition, { type: 'NUTRITION_RESET' }),
         progress: progressReducer(state.progress, { type: 'PROGRESS_RESET' }),
         notifications: [],
+        chat: chatReducer(state.chat, { type: 'CHAT_CLEAR_HISTORY' }),
       }
 
     case 'APP_HYDRATE':
@@ -35,6 +37,7 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
         progress: progressReducer(state.progress, action),
         theme: themeReducer(state.theme, action),
         notifications: notificationReducer(state.notifications, action),
+        chat: chatReducer(state.chat, action as any),
       }
   }
 }

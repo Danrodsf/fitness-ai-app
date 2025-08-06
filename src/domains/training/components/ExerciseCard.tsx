@@ -24,7 +24,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
   const [editReps, setEditReps] = useState('')
   const [editWeight, setEditWeight] = useState('')
   
-  // 🔥 NUEVO: Estado para historial del ejercicio
+  // Estado para historial del ejercicio
   const [lastPerformance, setLastPerformance] = useState<{
     lastSession: { date: string; sets: { reps: number; weight: number; notes?: string }[] } | null
     maxWeight: number
@@ -33,15 +33,13 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
   } | null>(null)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   
-  // Verificar estructura y proporcionar fallbacks
-  
+  // Exercise data with fallbacks
   const exercise = workoutExercise.exercise
   const plannedSets = workoutExercise.plannedSets || 3
   const plannedReps = workoutExercise.plannedReps || '8-12'
 
-  // 🔥 SOLUCION TEMPORAL: Asegurar que el ejercicio tenga un ID válido
+  // Ensure exercise has valid ID
   if (!exercise.id && exercise.name) {
-    // Generar ID a partir del nombre si no existe
     exercise.id = exercise.name.toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^\w-]/g, '')
@@ -49,8 +47,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
   }
 
 
-  // 🔥 SOLUCION: Obtener datos del estado global en lugar del prop
-  // Buscar el ejercicio actual en la sesión activa para obtener datos actualizados
+  // Get current exercise data from global state
   const getCurrentExerciseFromSession = () => {
     if (!state.training.currentSession || !exercise.id) {
       return {
@@ -63,7 +60,6 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
       ex => ex.exercise.id === exercise.id
     )
     
-    
     return {
       actualSets: currentExercise?.actualSets || workoutExercise.actualSets || [],
       completed: currentExercise?.completed || workoutExercise.completed || false
@@ -73,19 +69,11 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
   const { actualSets, completed } = getCurrentExerciseFromSession()
   
 
-  // 🔥 NUEVO: Calcular semana de entrenamiento automáticamente
-  const calculateCurrentWeek = (): number => {
-    // Usar semana 1 por defecto hasta que se resuelvan los tipos
-    // TODO: Implementar cálculo real cuando se actualicen las interfaces
-    return 1
-  }
-
-  const currentWeek = calculateCurrentWeek()
-
-  // 🔥 NUEVO: Mostrar información de la semana en la UI
+  // Calculate current training week
+  const currentWeek = 1 // Default to week 1
   const weekInfo = `Semana ${currentWeek}`
 
-  // 🔥 REACTIVADO: Carga automática de historial
+  // Load exercise history automatically
   useEffect(() => {
     const loadExerciseHistory = async () => {
       if (!user?.id || !exercise.id) return
@@ -94,13 +82,8 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
       try {
         const performance = await TrainingService.getLastExercisePerformance(user.id, exercise.id)
         setLastPerformance(performance)
-        
-        
-        // Auto-llenar peso recomendado si no hay sets actuales y no estamos añadiendo una serie
-        if (actualSets.length === 0 && performance.recommendedWeight > 0 && !isAddingSet) {
-        }
       } catch (error) {
-        console.error('Error cargando historial del ejercicio:', error)
+        console.error('Error loading exercise history:', error)
       } finally {
         setIsLoadingHistory(false)
       }
@@ -128,18 +111,17 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
   const handleAddSet = () => {
     setIsAddingSet(true)
     
-    // 🔥 AUTO-FILL INTELIGENTE
+    // Smart auto-fill for new sets
     if (actualSets.length === 0) {
-      // Primera serie: usar peso recomendado si hay historial
-      if (lastPerformance && lastPerformance.recommendedWeight && lastPerformance.recommendedWeight > 0) {
+      // First set: use recommended weight and reps from history
+      if (lastPerformance && lastPerformance.recommendedWeight > 0) {
         setNewSetWeight(lastPerformance.recommendedWeight.toString())
       }
-      // Si hay sets anteriores de la última sesión, usar las reps de la primera serie
       if (lastPerformance && lastPerformance.lastSession?.sets?.[0]) {
         setNewSetReps(lastPerformance.lastSession.sets[0].reps.toString())
       }
     } else {
-      // Series siguientes: usar datos de la serie anterior actual
+      // Subsequent sets: use data from previous set
       const lastSet = actualSets[actualSets.length - 1]
       if (lastSet) {
         setNewSetReps(lastSet.reps.toString())
@@ -161,15 +143,11 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
     }
 
     try {
-      // 🔥 MEJORADO: Incluir semana de entrenamiento en la serie
       const setWithWeek = {
         ...newSet,
-        weekNumber: currentWeek // Agregar semana actual
+        weekNumber: currentWeek
       }
 
-
-      // 🔥 CAMBIO: Solo guardar en estado local, NO en BD
-      // La BD se actualizará cuando se complete todo el día de entrenamiento
       dispatch({
         type: 'EXERCISE_SET_UPDATE',
         payload: {
@@ -179,23 +157,20 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
         }
       })
 
-
       dispatch({
         type: 'NOTIFICATION_ADD',
         payload: {
           type: 'success',
-          title: 'Serie registrada localmente',
-          message: `${newSetReps} reps${newSetWeight ? ` con ${newSetWeight}kg` : ''} - Semana ${currentWeek} - Se guardará al completar el día`
+          title: 'Serie registrada',
+          message: `${newSetReps} reps${newSetWeight ? ` con ${newSetWeight}kg` : ''} - Se guardará al completar el entrenamiento`
         }
       })
 
-      
-      // Reset form
       setNewSetReps('')
       setNewSetWeight('')
       setIsAddingSet(false)
     } catch (error) {
-      console.error('Error guardando set localmente:', error)
+      console.error('Error saving set locally:', error)
       dispatch({
         type: 'NOTIFICATION_ADD',
         payload: {
@@ -341,7 +316,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                 <Badge variant={getDifficultyColor(exercise.difficulty)} size="sm" className="text-xs sm:text-sm">
                   {exercise.difficulty}
                 </Badge>
-                {/* 🔥 NUEVO: Mostrar semana actual */}
+                {/* Current training week */}
                 <Badge variant="primary" size="sm" className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 text-xs sm:text-sm">
                   📅 {weekInfo}
                 </Badge>
@@ -381,7 +356,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
             </div>
 
             {/* Full-width status components */}
-            {/* 🔥 NUEVO: Historial del último entrenamiento */}
+            {/* Exercise history from last session */}
             {lastPerformance?.lastSession && (
               <div className="w-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2 sm:p-4 mb-2 sm:mb-3">
                 <div className="flex items-center gap-2 mb-2 sm:mb-3 w-full">
@@ -390,27 +365,41 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
                     Último entrenamiento ({lastPerformance.lastSession.date})
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm mb-2 sm:mb-3 w-full">
-                  <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
-                    <span className="text-gray-600 dark:text-gray-300">Max:</span>
-                    <span className="font-semibold text-blue-700 dark:text-blue-300">{lastPerformance.maxWeight}kg</span>
+                
+                {/* Mostrar datos si existen, o mensaje informativo si no hay sets */}
+                {lastPerformance.lastSession.sets && lastPerformance.lastSession.sets.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm mb-2 sm:mb-3 w-full">
+                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                      <span className="text-gray-600 dark:text-gray-300">Max:</span>
+                      <span className="font-semibold text-blue-700 dark:text-blue-300">{lastPerformance.maxWeight}kg</span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                      <span className="text-gray-600 dark:text-gray-300">Total:</span>
+                      <span className="font-semibold text-blue-700 dark:text-blue-300">{lastPerformance.totalReps} reps</span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
+                      <TrendingUp size={16} className="text-green-500 flex-shrink-0" />
+                      <span className="text-green-600 dark:text-green-400 font-semibold">
+                        Rec: {lastPerformance.recommendedWeight}kg
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
-                    <span className="text-gray-600 dark:text-gray-300">Total:</span>
-                    <span className="font-semibold text-blue-700 dark:text-blue-300">{lastPerformance.totalReps} reps</span>
-                  </div>
-                  <div className="flex items-center justify-between sm:justify-start gap-2 w-full">
-                    <TrendingUp size={16} className="text-green-500 flex-shrink-0" />
-                    <span className="text-green-600 dark:text-green-400 font-semibold">
-                      Rec: {lastPerformance.recommendedWeight}kg
+                ) : (
+                  <div className="text-center py-2 w-full">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      No se registraron series en esta sesión
                     </span>
                   </div>
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 break-words bg-white dark:bg-gray-700 rounded p-2 sm:p-3 w-full">
-                  <span className="font-medium">Series anteriores:</span> {lastPerformance.lastSession.sets.map(set => 
-                    `${set.reps}×${set.weight}kg`
-                  ).join(', ')}
-                </div>
+                )}
+                
+                {/* Mostrar series anteriores solo si existen */}
+                {lastPerformance.lastSession.sets && lastPerformance.lastSession.sets.length > 0 && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 break-words bg-white dark:bg-gray-700 rounded p-2 sm:p-3 w-full">
+                    <span className="font-medium">Series anteriores:</span> {lastPerformance.lastSession.sets.map(set => 
+                      `${set.reps}×${set.weight}kg`
+                    ).join(', ')}
+                  </div>
+                )}
               </div>
             )}
 

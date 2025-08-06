@@ -19,7 +19,6 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
   const [isExpanded, setIsExpanded] = useState(false)
 
   const handleStartWorkout = () => {
-    
     dispatch({
       type: 'WORKOUT_START',
       payload: { workoutDayId: workoutDay.id }
@@ -37,9 +36,8 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
 
   const handleCompleteWorkout = async () => {
     try {
-      // 🔥 IMPLEMENTADO: Guardar en BD cuando se completa el día entero
-      if (state.training.currentSession && state.training.currentSession.exercises.length > 0) {
-        
+      // Save workout session to database when completed
+      if (state.training.currentSession?.exercises && state.training.currentSession.exercises.length > 0 && user?.id) {
         dispatch({
           type: 'NOTIFICATION_ADD',
           payload: {
@@ -49,14 +47,10 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
           }
         })
         
-        // 🔥 NUEVO: Llamada real a la base de datos
-        if (user?.id) {
-          await TrainingService.saveCompleteWorkoutSession(
-            user.id, 
-            state.training.currentSession
-          )
-          
-        }
+        await TrainingService.saveCompleteWorkoutSession(
+          user.id, 
+          state.training.currentSession
+        )
       }
 
       dispatch({
@@ -68,12 +62,12 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
         type: 'NOTIFICATION_ADD',
         payload: {
           type: 'success',
-          title: '¡Entrenamiento completado y guardado!',
-          message: 'Excelente trabajo 💪 - Datos sincronizados en la nube'
+          title: '¡Entrenamiento completado!',
+          message: 'Excelente trabajo 💪 - Datos guardados'
         }
       })
     } catch (error) {
-      console.error('Error completando entrenamiento:', error)
+      console.error('Error completing workout:', error)
       dispatch({
         type: 'NOTIFICATION_ADD',
         payload: {
@@ -85,14 +79,14 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
     }
   }
 
-  // Use session data if it's the current session, otherwise use static data
+  // Select appropriate exercise data source
   const exercisesToUse = isCurrentSession && state.training.currentSession 
     ? state.training.currentSession.exercises 
     : workoutDay.exercises
 
   const completedExercises = exercisesToUse.filter(ex => ex.completed).length
   const totalExercises = exercisesToUse.length
-  const progressPercentage = (completedExercises / totalExercises) * 100
+  const progressPercentage = totalExercises > 0 ? (completedExercises / totalExercises) * 100 : 0
 
   return (
     <Card 
@@ -228,7 +222,7 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
             
             <div className="space-y-4 w-full">
               {exercisesToUse.map((workoutExercise, index) => (
-                <div key={workoutExercise.exercise?.id || `exercise-${index}`} className="w-full">
+                <div key={`${workoutDay.id}-${workoutExercise.exercise?.id || index}-${index}`} className="w-full">
                   <ExerciseCard
                     workoutExercise={workoutExercise}
                     exerciseNumber={index + 1}

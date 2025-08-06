@@ -80,12 +80,62 @@ export class TrainingService {
 
   // Training statistics
   static async getTrainingStats(userId: string) {
+    console.log('📊 TrainingService.getTrainingStats called for user:', userId)
+    
     const client = this.ensureSupabase()
-    const { data, error } = await client
-      .rpc('get_training_summary', { user_id_param: userId })
+    
+    try {
+      const { data, error } = await client
+        .rpc('get_training_summary', { user_id_param: userId })
 
-    if (error) throw error
-    return data
+      if (error) {
+        console.error('❌ TrainingService.getTrainingStats RPC error:', error)
+        
+        // Fallback: try to get data directly from workout_sessions
+        console.log('🔄 Trying fallback method: direct query to workout_sessions')
+        const { data: fallbackData, error: fallbackError } = await client
+          .from('workout_sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('completed', true)
+          .order('start_time', { ascending: false })
+          .limit(10)
+        
+        if (fallbackError) {
+          console.error('❌ Fallback query also failed:', fallbackError)
+          throw fallbackError
+        }
+        
+        console.log('✅ Fallback data retrieved:', fallbackData?.length || 0, 'sessions')
+        return fallbackData
+      }
+
+      console.log('✅ TrainingService.getTrainingStats success:', data?.length || 0, 'sessions')
+      console.log('🔍 TrainingService raw data:', data)
+      
+      // La función RPC devuelve solo estadísticas agregadas, no sesiones individuales
+      // Vamos a usar el fallback para conseguir sesiones reales
+      console.log('🔄 Using fallback to get individual sessions instead of aggregated stats')
+      const { data: fallbackData, error: fallbackError } = await client
+        .from('workout_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('completed', true)
+        .order('start_time', { ascending: false })
+      
+      if (fallbackError) {
+        console.error('❌ Fallback query failed:', fallbackError)
+        return data // Return original RPC data if fallback fails
+      }
+      
+      console.log('✅ Fallback found individual sessions:', fallbackData?.length || 0)
+      console.log('🔍 Individual sessions data:', fallbackData)
+      
+      return fallbackData && fallbackData.length > 0 ? fallbackData : data
+    } catch (error) {
+      console.error('❌ TrainingService.getTrainingStats failed:', error)
+      throw error
+    }
   }
 
   // Guardar sesión completa de entrenamiento (OPTIMIZADO CON JSON)
@@ -263,14 +313,28 @@ export class TrainingService {
       const exerciseData = lastSession.exercise_data
       const sets = exerciseData.sets || []
 
+      // Si no hay sets en la sesión más reciente, usar búsqueda inteligente
+      if (sets.length === 0) {
+        return await this.getLastExercisePerformanceManual(userId, exerciseId)
+      }
 
-      // Calcular estadísticas
-      const maxWeight = Math.max(...sets.map((s: any) => s.weight || 0))
-      const totalReps = sets.reduce((sum: number, s: any) => sum + s.reps, 0)
-      // const avgWeight = sets.length > 0 ? sets.reduce((sum: number, s: any) => sum + (s.weight || 0), 0) / sets.length : 0
+      // Calcular estadísticas con validación para arrays vacíos
+      const weights = sets.map((s: any) => s.weight || 0).filter((w: number) => w > 0)
+      const maxWeight = weights.length > 0 ? Math.max(...weights) : 0
+      const totalReps = sets.reduce((sum: number, s: any) => sum + (s.reps || 0), 0)
+      
+      // Intentar encontrar mejor historial en sesiones anteriores
+      try {
+        const manualResult = await this.getLastExercisePerformanceManual(userId, exerciseId)
+        if (manualResult && manualResult.maxWeight > maxWeight) {
+          return manualResult
+        }
+      } catch (error) {
+        // Continuar con datos actuales si falla la búsqueda manual
+      }
       
       // Progresión inteligente: +2.5kg para pesos >20kg, +1kg para <20kg
-      const recommendedWeight = maxWeight > 20 ? maxWeight + 2.5 : maxWeight + 1
+      const recommendedWeight = maxWeight > 20 ? maxWeight + 2.5 : maxWeight > 0 ? maxWeight + 1 : 0
 
       return {
         lastSession: {
@@ -316,24 +380,41 @@ export class TrainingService {
       let lastSession = null
       let allSets: any[] = []
 
+      // Extraer nombre base del ejercicio para búsqueda inteligente
+      const baseName = this.extractExerciseBaseName(exerciseId)
+
       for (const session of sessions || []) {
-        if (session.session_data?.exercises) {
-          const exercise = session.session_data.exercises.find((ex: any) => ex.exercise_id === exerciseId)
-          if (exercise && exercise.sets && exercise.sets.length > 0) {
-            if (!lastSession) {
-              lastSession = {
-                date: session.start_time.split('T')[0],
-                sets: exercise.sets.map((s: any) => ({
-                  reps: s.reps,
-                  weight: s.weight || 0,
-                  notes: s.notes || null
-                }))
-              }
-            }
+        if (!session.session_data?.exercises) continue
+        
+        // Buscar por ID exacto primero, luego por nombre similar
+        let exercise = session.session_data.exercises.find((ex: any) => ex.exercise_id === exerciseId)
+        
+        if (!exercise && baseName) {
+          // Búsqueda por nombre similar si no encuentra por ID
+          exercise = session.session_data.exercises.find((ex: any) => {
+            if (!ex.exercise_id && !ex.exercise_name) return false
             
-            // Acumular todos los sets para estadísticas generales
-            allSets.push(...exercise.sets)
+            const candidateName = this.extractExerciseBaseName(ex.exercise_id || ex.exercise_name || '')
+            const similarity = this.calculateExerciseNameSimilarity(baseName, candidateName)
+            
+            return similarity > 0.7
+          })
+        }
+        
+        if (exercise?.sets?.length > 0) {
+          if (!lastSession) {
+            lastSession = {
+              date: session.start_time.split('T')[0],
+              sets: exercise.sets.map((s: any) => ({
+                reps: s.reps,
+                weight: s.weight || 0,
+                notes: s.notes || null
+              }))
+            }
           }
+          
+          // Acumular todos los sets para estadísticas generales
+          allSets.push(...exercise.sets)
         }
       }
 
@@ -346,10 +427,11 @@ export class TrainingService {
         }
       }
 
-      // Calcular estadísticas
-      const maxWeight = Math.max(...allSets.map(s => s.weight || 0))
-      const totalReps = allSets.reduce((sum, s) => sum + s.reps, 0)
-      const recommendedWeight = maxWeight > 20 ? maxWeight + 2.5 : maxWeight + 1
+      // Calcular estadísticas con validación para arrays vacíos
+      const weights = allSets.map(s => s.weight || 0).filter(w => w > 0)
+      const maxWeight = weights.length > 0 ? Math.max(...weights) : 0
+      const totalReps = allSets.reduce((sum, s) => sum + (s.reps || 0), 0)
+      const recommendedWeight = maxWeight > 20 ? maxWeight + 2.5 : maxWeight > 0 ? maxWeight + 1 : 0
 
 
       return {
@@ -490,7 +572,8 @@ export class TrainingService {
           }
 
 
-          const maxWeight = Math.max(...sets.map((s: any) => s.weight || 0))
+          const weights = sets.map((s: any) => s.weight || 0).filter((w: number) => w > 0)
+          const maxWeight = weights.length > 0 ? Math.max(...weights) : 0
           const totalReps = sets.reduce((sum: number, s: any) => sum + (s.reps || 0), 0)
 
           exerciseData.push({
@@ -552,5 +635,62 @@ export class TrainingService {
       .replace(/\s+/g, '-')
       .replace(/[^\w-]/g, '')
       .replace(/--+/g, '-')
+  }
+
+  /**
+   * Extrae el nombre base de un ejercicio eliminando timestamp y ID único
+   * @param exerciseId - ID del ejercicio (ej: "press_de_pecho_en_mquina_1754465778281_ywhy")
+   * @returns Nombre base normalizado (ej: "press_de_pecho_en_mquina")
+   */
+  private static extractExerciseBaseName(exerciseId: string): string {
+    return exerciseId
+      .toLowerCase()
+      .replace(/_\d{13}_[a-z0-9]{4}$/i, '') // Remover timestamp + random ID
+      .replace(/[-_]/g, '_') // Normalizar separadores
+      .trim()
+  }
+
+  /**
+   * Calcula la similitud entre dos nombres de ejercicios
+   * @param name1 - Primer nombre
+   * @param name2 - Segundo nombre
+   * @returns Valor de similitud entre 0 y 1
+   */
+  private static calculateExerciseNameSimilarity(name1: string, name2: string): number {
+    if (!name1 || !name2) return 0
+    
+    const normalize = (str: string) => str.toLowerCase().replace(/[-_]/g, '_')
+    const normalized1 = normalize(name1)
+    const normalized2 = normalize(name2)
+    
+    // Coincidencia exacta
+    if (normalized1 === normalized2) return 1.0
+    
+    // Verificar si uno contiene al otro
+    if (normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
+      const shorter = normalized1.length < normalized2.length ? normalized1 : normalized2
+      const longer = normalized1.length >= normalized2.length ? normalized1 : normalized2
+      return shorter.length / longer.length
+    }
+    
+    // Similitud por palabras clave
+    const words1 = normalized1.split('_').filter(w => w.length > 2)
+    const words2 = normalized2.split('_').filter(w => w.length > 2)
+    
+    if (words1.length === 0 || words2.length === 0) return 0
+    
+    let matches = 0
+    const totalWords = Math.max(words1.length, words2.length)
+    
+    for (const word1 of words1) {
+      for (const word2 of words2) {
+        if (word1 === word2 || word1.includes(word2) || word2.includes(word1)) {
+          matches++
+          break
+        }
+      }
+    }
+    
+    return matches / totalWords
   }
 }

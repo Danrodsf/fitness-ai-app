@@ -11,6 +11,7 @@ import { MilestonesCard } from './MilestonesCard'
 import { ProgressStats } from './ProgressStats'
 import { BMICard } from './BMICard'
 import { SmartWeightGoals } from './SmartWeightGoals'
+import { ProgressInsightsCard } from '@/shared/components/ProgressInsightsCard'
 import { defaultMilestones, sampleWeightEntries, generatePersonalizedMilestones } from '../data/progressData'
 
 export const ProgressDashboard = () => {
@@ -304,6 +305,7 @@ export const ProgressDashboard = () => {
 
         {/* Right Column */}
         <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+          <ProgressInsightsCard />
           <MilestonesCard />
           <ProgressStats />
         </div>

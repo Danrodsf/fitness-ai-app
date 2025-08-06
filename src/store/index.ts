@@ -4,6 +4,7 @@ import { TrainingState, TrainingAction } from '@/domains/training/types'
 import { NutritionState, NutritionAction } from '@/domains/nutrition/types'
 import { ProgressState, ProgressAction } from '@/domains/progress/types'
 import { ThemeState } from '@/shared/types/common'
+import { ChatState, ChatAction } from '@/store/reducers/chatReducer'
 
 // Global Application State
 export interface AppState {
@@ -12,6 +13,7 @@ export interface AppState {
   nutrition: NutritionState
   progress: ProgressState
   theme: ThemeState
+  chat: ChatState
   notifications: Array<{
     id: string
     type: 'success' | 'error' | 'warning' | 'info'
@@ -27,6 +29,7 @@ export type AppAction =
   | TrainingAction 
   | NutritionAction
   | ProgressAction
+  | ChatAction
   | { type: 'THEME_TOGGLE' }
   | { type: 'THEME_SET'; payload: 'light' | 'dark' | 'system' }
   | { type: 'NOTIFICATION_ADD'; payload: { type: 'success' | 'error' | 'warning' | 'info'; title: string; message?: string } }
@@ -95,6 +98,14 @@ export const createInitialState = (): AppState => ({
   theme: {
     mode: 'system',
     isDark: false,
+  },
+  chat: {
+    messages: [],
+    pendingProposal: null,
+    isOpen: false,
+    isLoading: false,
+    isWaitingConfirmation: false,
+    error: null,
   },
   notifications: [],
 })

@@ -163,6 +163,14 @@ export const trainingReducer = (state: TrainingState, action: AppAction): Traini
         workoutHistory: [action.payload, ...state.workoutHistory],
       }
 
+    case 'TRAINING_HISTORY_LOAD':
+      return {
+        ...state,
+        workoutHistory: action.payload || [],
+        isLoading: false,
+        error: null,
+      }
+
     case 'TRAINING_RESET':
       return {
         currentProgram: null,

@@ -69,6 +69,7 @@ export type TrainingAction =
   | { type: 'EXERCISE_COMPLETE'; payload: { exerciseId: string } }
   | { type: 'TRAINING_PROGRAM_LOAD'; payload: TrainingProgram }
   | { type: 'WORKOUT_HISTORY_ADD'; payload: WorkoutSession }
+  | { type: 'TRAINING_HISTORY_LOAD'; payload: WorkoutSession[] }
   | { type: 'TRAINING_RESET' }
 
 export interface TrainingState {
