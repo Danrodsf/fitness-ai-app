@@ -242,7 +242,7 @@ export class ProgressAnalysisService {
     }
   }
 
-  private static notifyUserOfAnalysis(analysis: ProgressAnalysisResult): void {
+  private static notifyUserOfAnalysis(_analysis: ProgressAnalysisResult): void {
     // This would trigger a notification in the app
     // Could dispatch a notification action here
     // dispatch({ type: 'NOTIFICATION_ADD', payload: { ... } })

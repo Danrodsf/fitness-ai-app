@@ -236,7 +236,7 @@ export class AIService {
       }
 
       // Validar que cada día tenga la estructura correcta
-      nutritionPlan.weeklyPlan.days.forEach((day: any, index: number) => {
+      nutritionPlan.weeklyPlan.days.forEach((day: any) => {
         if (!day.day || !day.breakfast || !day.lunch || !day.dinner) {
           // Day structure validation failed
         }

@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     
 
     // 🔥 SOLUCIÓN DEFINITIVA: Cache de perfil + control de llamadas duplicadas
-    const loadUserProfile = async (userId: string, source: string) => {
+    const loadUserProfile = async (userId: string) => {
       // Si ya tenemos el perfil de este usuario en cache, no hacer nada
       if (profileLoaded && currentUserId === userId) {
         return profileCache
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(currentUser)
         
         if (currentUser) {
-          await loadUserProfile(currentUser.id, 'INIT')
+          await loadUserProfile(currentUser.id)
         } else {
           // 🔥 FIX: Si no hay usuario, sí quitar loading
           if (isMounted) {
@@ -141,7 +141,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // 🔥 SOLUCIÓN: Solo cargar perfil si no está ya en cache para este usuario
       if (authUserId && currentUserId !== authUserId) {
         setUser(authUser)
-        await loadUserProfile(authUserId, 'AUTH_CHANGE')
+        await loadUserProfile(authUserId)
       } 
       // Caso 2: Logout
       else if (!authUserId && prevUserId) {
