@@ -282,7 +282,7 @@ export const ExerciseCard = ({ workoutExercise, exerciseNumber, isActive }: Exer
         !isActive && !completed && 'hover:border-gray-300 dark:hover:border-gray-600'
       )}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-2">
         <div className="space-y-3">
           {/* Exercise header */}
           <div>

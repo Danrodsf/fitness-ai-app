@@ -97,7 +97,7 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
         workoutDay.completed && 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-800'
       )}
     >
-      <CardHeader className="p-6">
+      <CardHeader className="p-2 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="space-y-2 flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -196,7 +196,7 @@ export const WorkoutDayCard = ({ workoutDay, isCurrentSession }: WorkoutDayCardP
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="animate-slide-down p-6">
+        <CardContent className="animate-slide-down p-2 sm:p-6">
           {/* Warm up */}
           <div className="mb-6">
             <h4 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white mb-3">

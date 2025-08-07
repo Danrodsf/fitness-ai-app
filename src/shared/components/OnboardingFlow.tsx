@@ -1,98 +1,70 @@
-import { useState } from 'react'
-import { Button, Input, Card } from '@/shared/components/ui'
-import { ChevronRight, ChevronLeft, Sparkles, Target, Activity, Apple } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Button, Input, Card, LoadingAIGeneration, LoadingSpinner } from '@/shared/components/ui'
+import { ChevronRight, ChevronLeft, Sparkles, Target, Activity, Apple, Save } from 'lucide-react'
 import { useAuth } from '@/domains/auth/hooks/useAuth'
 import { AIService } from '@/shared/services/AIService'
 import { TrainingService } from '@/domains/training/services/trainingService'
 import { NutritionService } from '@/domains/nutrition/services/nutritionService'
+import { useOnboardingPersistence } from '@/shared/hooks/useOnboardingPersistence'
+import { ProgressRestoreModal } from '@/shared/components/ProgressRestoreModal'
+import { OnboardingData } from '@/shared/types/onboarding.types'
 
-interface OnboardingData {
-  // Datos personales
-  name: string
-  age: number
-  weight: number
-  height: number
-  gender: 'male' | 'female' | 'other'
-  
-  // Objetivos
-  primaryGoal: 'lose_weight' | 'gain_muscle' | 'improve_endurance' | 'general_health'
-  targetWeight?: number
-  timeframe: '1-3' | '3-6' | '6-12' | '12+' // meses
-  
-  // Experiencia
-  experienceLevel: 'beginner' | 'intermediate' | 'advanced'
-  currentActivity: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active'
-  workoutFrequency: number // días por semana
-  
-  // Preferencias de entrenamiento
-  preferredWorkouts: string[]
-  availableEquipment: string[]
-  timePerWorkout: number // minutos
-  
-  // Restricciones
-  injuries: string[]
-  healthConditions: string[]
-  dietaryRestrictions: string[]
-  
-  // Alimentación
-  mealsPerDay: number
-  cookingTime: 'minimal' | 'moderate' | 'extensive'
-  budget: 'low' | 'medium' | 'high'
-  
-  // 🔥 NUEVO: Campo libre prioritario
-  additionalInfo: string
+
+const defaultFormData: OnboardingData = {
+  name: '',
+  age: 25,
+  weight: 70,
+  height: 170,
+  gender: 'male',
+  primaryGoal: 'general_health',
+  timeframe: '3-6',
+  experienceLevel: 'beginner',
+  currentActivity: 'moderate',
+  workoutFrequency: 3,
+  preferredWorkouts: [],
+  availableEquipment: [],
+  timePerWorkout: 45,
+  injuries: [],
+  healthConditions: [],
+  dietaryRestrictions: [],
+  mealsPerDay: 3,
+  cookingTime: 'moderate',
+  budget: 'medium',
+  additionalInfo: ''
 }
 
 export const OnboardingFlow = () => {
   const { updateProfile, user } = useAuth()
-  const [currentStep, setCurrentStep] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState<OnboardingData>({
-    name: '',
-    age: 25,
-    weight: 70,
-    height: 170,
-    gender: 'male',
-    primaryGoal: 'general_health',
-    timeframe: '3-6',
-    experienceLevel: 'beginner',
-    currentActivity: 'moderate',
-    workoutFrequency: 3,
-    preferredWorkouts: [],
-    availableEquipment: [],
-    timePerWorkout: 45,
-    injuries: [],
-    healthConditions: [],
-    dietaryRestrictions: [],
-    mealsPerDay: 3,
-    cookingTime: 'moderate',
-    budget: 'medium',
-    additionalInfo: ''
-  })
+  const [showRestoreModal, setShowRestoreModal] = useState(false)
+  
+  const {
+    currentStep,
+    formData,
+    isRestoring,
+    hasStoredProgress,
+    updateFormData,
+    handleArrayToggle,
+    nextStep,
+    prevStep,
+    clearProgress,
+    restartOnboarding
+  } = useOnboardingPersistence(defaultFormData)
 
-  const updateFormData = (field: keyof OnboardingData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-  const handleArrayToggle = (field: keyof OnboardingData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: (prev[field] as string[]).includes(value)
-        ? (prev[field] as string[]).filter(item => item !== value)
-        : [...(prev[field] as string[]), value]
-    }))
-  }
-
-  const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
+  // Mostrar modal de restauración si hay progreso guardado
+  useEffect(() => {
+    if (!isRestoring && hasStoredProgress) {
+      setShowRestoreModal(true)
     }
+  }, [isRestoring, hasStoredProgress])
+
+  const handleContinueProgress = () => {
+    setShowRestoreModal(false)
   }
 
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
-    }
+  const handleRestartProgress = () => {
+    restartOnboarding()
+    setShowRestoreModal(false)
   }
 
   const generateAIPlans = async () => {
@@ -155,6 +127,9 @@ export const OnboardingFlow = () => {
           aiPlansGeneratedAt: new Date().toISOString()
         }
       })
+      
+      // 4. LIMPIAR PROGRESO GUARDADO AL COMPLETAR EXITOSAMENTE
+      clearProgress()
       
       
     } catch (error) {
@@ -536,34 +511,62 @@ export const OnboardingFlow = () => {
     }
   ]
 
+  // Mostrar loading si está restaurando datos
+  if (isRestoring) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full">
+          <div className="p-8">
+            <LoadingSpinner 
+              message="Cargando tu progreso..."
+              size="lg"
+            />
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
   const currentStepData = steps[currentStep]
   const isLastStep = currentStep === steps.length - 1
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <>
+      <ProgressRestoreModal
+        isOpen={showRestoreModal}
+        onContinue={handleContinueProgress}
+        onRestart={handleRestartProgress}
+        lastUpdated={new Date().toISOString()} // Se actualizará con fecha real del hook
+        currentStep={currentStep}
+        totalSteps={steps.length}
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full relative">
-        {/* 🔥 NUEVO: Overlay de loading que bloquea todo el formulario */}
+        {/* Loading overlay with unified LoadingState */}
         {isLoading && (
           <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg z-50 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-600 border-t-transparent mx-auto mb-4"></div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                🤖 Creando tu plan personalizado
-              </h3>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <p>• Analizando tus objetivos y preferencias</p>
-                <p>• Generando rutinas adaptadas a tu nivel</p>
-                <p>• Calculando tu plan nutricional personalizado</p>
-                <p>• Guardando todo en tu perfil</p>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-4">
-                Esto puede tomar unos segundos...
-              </p>
-            </div>
+            <LoadingAIGeneration 
+              message="🤖 Creando tu plan personalizado"
+              details={[
+                'Analizando tus objetivos y preferencias',
+                'Generando rutinas adaptadas a tu nivel',
+                'Calculando tu plan nutricional personalizado',
+                'Guardando todo en tu perfil'
+              ]}
+            />
           </div>
         )}
 
         <div className="p-4 sm:p-6 md:p-8">
+          {/* Auto-save indicator */}
+          {!isLoading && (
+            <div className="absolute top-4 right-4 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <Save className="w-3 h-3" />
+              <span>Auto-guardado</span>
+            </div>
+          )}
+          
           {/* Header */}
           <div className="text-center mb-6 sm:mb-8">
             <div className="flex items-center justify-center w-12 h-12 bg-primary-600 rounded-xl mx-auto mb-4">
@@ -636,5 +639,6 @@ export const OnboardingFlow = () => {
         </div>
       </Card>
     </div>
+    </>
   )
 }

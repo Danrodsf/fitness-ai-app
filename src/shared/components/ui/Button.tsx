@@ -7,6 +7,17 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
+  // Accesibilidad mejorada
+  'aria-label'?: string
+  'aria-describedby'?: string
+  'aria-expanded'?: boolean
+  'aria-pressed'?: boolean
+  role?: string
+  loadingText?: string // Texto personalizable para estado de carga
+  // Micro-interacciones
+  withRipple?: boolean
+  withHaptic?: boolean
+  withSound?: boolean
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -19,9 +30,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     rightIcon,
     className,
     disabled,
+    loadingText = 'Cargando...',
+    withRipple = true,
+    withHaptic = false,
+    withSound = false,
+    'aria-label': ariaLabel,
+    'aria-describedby': ariaDescribedby,
+    'aria-expanded': ariaExpanded,
+    'aria-pressed': ariaPressed,
+    role,
+    onClick,
     ...props 
   }, ref) => {
-    const baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+    // Handler simplificado que siempre funciona
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (disabled || isLoading) return
+      onClick?.(event)
+    }
+    const baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed select-none'
     
     const variants = {
       primary: 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 text-white shadow-md hover:shadow-lg',
@@ -33,9 +59,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     }
     
     const sizes = {
-      sm: 'px-2 py-1.5 text-sm rounded-md',
-      md: 'px-4 py-2 text-sm rounded-lg',
-      lg: 'px-6 py-3 text-base rounded-lg',
+      sm: 'px-3 py-2 text-sm rounded-md min-h-[32px]', // Mínimo 32px para touch targets
+      md: 'px-4 py-2.5 text-sm rounded-lg min-h-[40px]', // Mínimo 40px
+      lg: 'px-6 py-3 text-base rounded-lg min-h-[48px]', // Mínimo 48px
     }
 
     return (
@@ -49,8 +75,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         disabled={disabled || isLoading}
+        aria-label={ariaLabel || (typeof children === 'string' ? children : undefined)}
+        aria-describedby={ariaDescribedby}
+        aria-expanded={ariaExpanded}
+        aria-pressed={ariaPressed}
+        aria-busy={isLoading}
+        role={role}
+        onClick={handleClick}
         {...props}
       >
+        {/* Estados visuales básicos */}
+        
         {isLoading ? (
           <>
             <svg
@@ -73,7 +108,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Cargando...
+            <span className="sr-only">Cargando, por favor espera</span>
+            {loadingText}
           </>
         ) : (
           <>

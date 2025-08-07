@@ -1,24 +1,54 @@
-import { HTMLAttributes } from 'react'
+import { HTMLAttributes, forwardRef } from 'react'
 import { clsx } from 'clsx'
+import { useCardInteractions } from '@/shared/hooks/useMicroInteractions'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'glass' | 'bordered'
   padding?: 'none' | 'sm' | 'md' | 'lg'
+  interactive?: boolean // Habilitar micro-interacciones
+  clickable?: boolean   // Card clickeable
 }
 
-export const Card = ({ 
+export const Card = forwardRef<HTMLDivElement, CardProps>(({ 
   children, 
   variant = 'default', 
   padding = 'sm',
-  className, 
+  interactive = false,
+  clickable = false,
+  className,
+  onClick,
   ...props 
-}: CardProps) => {
-  const baseClasses = 'rounded-xl transition-all duration-200'
+}, ref) => {
+  const interactions = useCardInteractions()
+  
+  const isInteractive = interactive || clickable || onClick
+  
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isInteractive) {
+      interactions.handleInteraction(e, 'click')
+    }
+    onClick?.(e)
+  }
+  
+  const baseClasses = clsx(
+    'rounded-xl transition-all duration-200 relative overflow-hidden',
+    isInteractive && 'cursor-pointer select-none',
+    isInteractive && interactions.getInteractionClasses()
+  )
   
   const variants = {
-    default: 'bg-white dark:bg-gray-800 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700',
-    glass: 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-glass hover:shadow-glass-hover border border-white/20 dark:border-gray-700/50',
-    bordered: 'border-2 border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600',
+    default: clsx(
+      'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
+      isInteractive ? 'shadow-md hover:shadow-xl hover:border-primary-200 dark:hover:border-primary-700' : 'shadow-sm'
+    ),
+    glass: clsx(
+      'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/50',
+      isInteractive ? 'shadow-glass hover:shadow-glass-hover hover:bg-white/90 dark:hover:bg-gray-800/90' : 'shadow-glass'
+    ),
+    bordered: clsx(
+      'border-2 border-gray-200 dark:border-gray-700',
+      isInteractive ? 'hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-md' : ''
+    ),
   }
   
   const paddings = {
@@ -30,18 +60,27 @@ export const Card = ({
 
   return (
     <div
+      ref={ref}
       className={clsx(
         baseClasses,
         variants[variant],
         paddings[padding],
         className
       )}
+      onClick={handleClick}
+      onMouseEnter={isInteractive ? interactions.handlers.onMouseEnter : undefined}
+      onMouseLeave={isInteractive ? interactions.handlers.onMouseLeave : undefined}
+      role={clickable || onClick ? 'button' : undefined}
+      tabIndex={clickable || onClick ? 0 : undefined}
       {...props}
     >
+      {isInteractive && <interactions.RippleEffects />}
       {children}
     </div>
   )
-}
+})
+
+Card.displayName = 'Card'
 
 interface CardHeaderProps extends HTMLAttributes<HTMLDivElement> {}
 

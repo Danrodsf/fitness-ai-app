@@ -75,6 +75,35 @@
 }
 
 @layer utilities {
+  /* Responsive typography utilities */
+  .text-fluid {
+    font-size: clamp(0.875rem, 0.875rem + 0.5vw, 1.125rem);
+  }
+  
+  .text-fluid-lg {
+    font-size: clamp(1.125rem, 1.125rem + 1vw, 1.5rem);
+  }
+  
+  .text-fluid-xl {
+    font-size: clamp(1.5rem, 1.5rem + 2vw, 2.25rem);
+  }
+  
+  /* Container query utilities */
+  .container-responsive {
+    container-type: inline-size;
+  }
+  
+  /* Touch-friendly sizes */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .touch-target-lg {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
   /* Text gradient utilities */
   .text-gradient {
     @apply bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent;
@@ -96,6 +125,31 @@
 
   .border-gradient > * {
     @apply bg-white dark:bg-gray-800 rounded-lg;
+  }
+  
+  /* Safe area utilities para dispositivos con notch */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-inset-bottom {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Masonry utilities */
+  .masonry-grid {
+    column-fill: balance;
+  }
+  
+  .masonry-grid > * {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 1rem;
   }
 }
 
@@ -157,6 +211,48 @@
   }
 }
 
+/* Container Queries (cuando esté ampliamente soportado) */
+@container (min-width: 300px) {
+  .container-sm {
+    @apply text-sm;
+  }
+}
+
+@container (min-width: 500px) {
+  .container-md {
+    @apply text-base;
+  }
+}
+
+@container (min-width: 800px) {
+  .container-lg {
+    @apply text-lg;
+  }
+}
+
+/* Responsive utilities que respetan prefer-reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe-animate {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe-animate {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .high-contrast {
+    border: 2px solid;
+    background: transparent !important;
+  }
+}
+
 /* Print styles */
 @media print {
   .no-print {
@@ -165,5 +261,13 @@
   
   body {
     @apply text-black bg-white;
+  }
+  
+  .print-break {
+    break-after: page;
+  }
+  
+  .print-no-break {
+    break-inside: avoid;
   }
 }
